@@ -3,6 +3,8 @@
 
 #include "stddef.h"
 
+#define NFIELDS 11
+
 typedef struct R2RRun {
         int year;
         int month;
@@ -10,9 +12,9 @@ typedef struct R2RRun {
         int run_n; // cardinality wrt day
         float distance; //miles
         float duration; //minutes
-        int workout_type;
+        int type;
         int feel; // how did it feel? 1-5 scale
-        int time_of_day; // MORNING, MIDDAY, AFTERNOON, EVENING
+        int time; // MORNING, MIDDAY, AFTERNOON, EVENING
         char *route; //name of the route
         size_t route_len;
         char *notes; //additional notes
