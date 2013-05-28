@@ -1,9 +1,17 @@
 #include "file_handles.h"
-#include <string.h>
-#include <stdio.h>
-#include <csv.h>
 
-int load_info_file(char *open_database)
+/* Function: load_info_file
+ * ------------------------
+ * Loads the name of the current database from a list of previously
+ * opened database filenames. The list is contained in the install
+ * directory "info.dat".
+ *
+ * Returns:
+ *  0: success
+ *  1: cannot find "info.dat"
+ *  2: "info.dat" is corrupted.
+ */
+static int load_info_file(char *open_database)
 {
 
         int ch = '\0';
@@ -57,15 +65,22 @@ int load_info_file(char *open_database)
         return 0;
 }
 
-int load_database(R2RDatabase *data, char *file)
+/* Function: load_database
+ * -----------------------
+ * Copies data from the given database file.
+ * 
+ * Returns:
+ *  0: success
+ *  1: cannot find the given file
+ *  2: database file is corrupted
+ */
+static int load_database(R2RDatabase *data, char *file)
 {
-
-        printf("inside load now\n\n");
 
         int retval = 0;
 
         size_t temp_len = 3;
-        char *temp = malloc(temp_len);
+        char *temp = malloc(temp_len + 1);
         if (temp == NULL)
                 return 1; //insufficient memory
 
@@ -111,9 +126,10 @@ int load_database(R2RDatabase *data, char *file)
         }
         }
         char *temp_temp = realloc(temp, temp_len + 1);
-        if (temp_temp == NULL) 
+        if (temp_temp == NULL) {
+                free(temp); 
                 return 1; // insufficient memory
-        else 
+        } else 
                 temp = temp_temp;
 
         for (i = 0; i < data->nruns; i++) {
@@ -137,11 +153,11 @@ int load_database(R2RDatabase *data, char *file)
                 data->run[i]->time = strtol(temp, NULL, 10);
 
                 data->run[i]->route_len = csv_get_field_length(buffer, i+1, 9);
-                data->run[i]->route = malloc(data->run[i]->route_len);
+                data->run[i]->route = malloc(data->run[i]->route_len + 1);
                 csv_get_field(data->run[i]->route, data->run[i]->route_len, buffer, i+1, 9);
 
                 data->run[i]->notes_len = csv_get_field_length(buffer, i+1, 10);
-                data->run[i]->notes = malloc(data->run[i]->notes_len);
+                data->run[i]->notes = malloc(data->run[i]->notes_len + 1);
                 csv_get_field(data->run[i]->notes, data->run[i]->notes_len, buffer, i+1, 10);
  
         } 
@@ -151,12 +167,40 @@ int load_database(R2RDatabase *data, char *file)
         free(temp);
         return 0;
 }
+
+void free_database(R2RDatabase *database)
+{
+        int i;
+        
+        for (i = 0; i < database->nruns; i++) {
+                free(database->run[i]->route);
+                free(database->run[i]->notes);
+                free(database->run[i]);
+        }
+        free(database);
+}
+
+
+
+R2RDatabase* load_data()
+{
+        char database_name[MAX_NAME];
+        R2RDatabase *database = malloc(sizeof(R2RDatabase));
+
+        load_info_file(database_name);
+        load_database(database, database_name);
+
+        return database;
+}
+
          
 
-
+//unit tester
+//gcc `pkg-config --cflags gtk+-3.0` -o a file_handles.c `pkg-config --libs gtk+-3.0` -lcsv
+/*
 int main() {
 
-        char *open_database = malloc(MAX_NAME);
+        char *open_database = malloc(MAX_NAME + 1);
 
         load_info_file(open_database);
 
@@ -168,9 +212,17 @@ int main() {
 
         printf(" units = %i name = %s\n", data->units, data->name);
 
+        int i;
+        for (i = 0; i < data->nruns; i++) {
+                free(data->run[i]->route);
+                free(data->run[i]->notes);
+                free(data->run[i]);
+        }
+        free(data->run);
         free(data->name);        
         free(data);
         free(open_database);
 
         return 0;
 }
+*/

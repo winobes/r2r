@@ -1,9 +1,12 @@
 #ifndef R2R_H
 #define R2R_H
 
-#include "stddef.h"
+#include <gtk/gtk.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 #define NFIELDS 11
+#define MAX_NAME 256
 
 typedef struct R2RRun {
         int year;
@@ -55,7 +58,5 @@ enum {
         AFTERNOON,
         EVENING,
 } time_of_day;
-
-int UNITS = MILES;
 
 #endif /* R2R_H */

@@ -1,29 +1,18 @@
 #include "r2r.h"
+#include <string.h>
+#include <stdio.h>
+#include <csv.h>
 
-#define MAX_NAME 256
-
-/* Function: load_info_file
- * ------------------------
- * Loads the name of the current database from a list of previously
- * opened database filenames. The list is contained in the install
- * directory "info.dat".
- *
- * Returns:
- *  0: success
- *  1: cannot find "info.dat"
- *  2: "info.dat" is corrupted.
+/* Function: load_data
+ * -------------------
+ * Returns a pointer to the data loaded by load_database. If something goes
+ * wrong or if load_info_file does not show an open database or is corrupted
+ * we should return a new database.
  */
-int load_info_file(char open_database[MAX_NAME]);
+R2RDatabase* load_data();
 
-/* Function: load_database
- * -----------------------
- * Copies data from the given database file.
- * 
- * Returns:
- *  0: success
- *  1: cannot find the given file
- *  2: database file is corrupted
+/* Function: free_database
+ * ----------------------
+ * Frees the memory allocated by load_data and load_database
  */
-int load_database(R2RDatabase *data, char file[MAX_NAME]);
-
-
+void free_database(R2RDatabase *database);
