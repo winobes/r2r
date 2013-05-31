@@ -77,8 +77,8 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
                 G_TYPE_INT,
                 G_TYPE_INT,
                 G_TYPE_FLOAT,
-                G_TYPE_FLOAT,
                 G_TYPE_INT,
+                G_TYPE_STRING,
                 G_TYPE_INT,
                 G_TYPE_INT,
                 G_TYPE_STRING);
@@ -152,21 +152,62 @@ static GtkWidget* create_month_chooser()
         return month_chooser;
 }
 
-static GtkWidget* create_newrun_window()
+static GtkWidget* create_newrun_window(R2RDatabase *database)
 {
         GtkWidget *window;
         GtkWidget *menubar;
         GtkWidget *grid;
+
+        GtkWidget *date_label;
         GtkWidget *calendar;
         GtkWidget *calendar_window;
         GtkWidget *calendar_grid;
         GtkWidget *calendar_button;
-        static GtkWidget *day_chooser;
+        GtkWidget *day_chooser;
         GtkAdjustment *day_adjustment;
         GtkWidget *month_chooser;
         GtkWidget *year_chooser;
         GtkAdjustment *year_adjustment;
-        
+
+        GtkWidget *distance_label;
+        GtkWidget *distance_chooser;
+        GtkAdjustment *distance_adjustment;
+        GtkWidget *distance_units_label;
+
+        GtkWidget *duration_grid;
+        GtkWidget *duration_label;
+        GtkWidget *duration_delim_label1;
+        GtkWidget *duration_delim_label2;
+        GtkWidget *hours_entry; 
+        GtkWidget *minutes_entry;
+        GtkWidget *seconds_entry;
+        GtkEntryBuffer *hours_buff;
+        GtkEntryBuffer *minutes_buff;
+        GtkEntryBuffer *seconds_buff;
+
+        GtkWidget *workout_type_label;
+        GtkWidget *workout_type_entry;
+
+        GtkWidget *feel_label;
+        GtkWidget *feel_grid;
+        GtkWidget *feel1;
+        GtkWidget *feel2;
+        GtkWidget *feel3;
+        GtkWidget *feel4;
+        GtkWidget *feel5;
+ 
+        GtkWidget *time_label;
+        GtkWidget *time_grid;
+        GtkWidget *time1;
+        GtkWidget *time2;
+        GtkWidget *time3;
+        GtkWidget *time4;
+
+        GtkWidget *route_label;
+        GtkWidget *route_entry;
+
+        GtkWidget *separator[7];
+
         R2RRun *newrun = malloc(sizeof(R2RRun));
         static NEW_DATA new_data;
 
@@ -174,7 +215,7 @@ static GtkWidget* create_newrun_window()
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_position(GTK_WINDOW(window), 
                 GTK_WIN_POS_CENTER);
-        gtk_window_set_default_size(GTK_WINDOW(window),200, 600);
+        gtk_window_set_default_size(GTK_WINDOW(window),200, 200);
         gtk_window_set_title(GTK_WINDOW(window), "New Run");
         grid = gtk_grid_new();
         gtk_container_add(GTK_CONTAINER(window), grid);
@@ -201,6 +242,8 @@ static GtkWidget* create_newrun_window()
         gtk_grid_attach(GTK_GRID(calendar_grid), calendar, 0, 0, 1, 1);
 
         /* Create the date choosers */
+        date_label = gtk_label_new("Date");
+
         day_adjustment = gtk_adjustment_new(0, 1, 31, 1, 0, 0);
         day_chooser = gtk_spin_button_new(day_adjustment, 1, 0);
         gtk_spin_button_set_snap_to_ticks(GTK_SPIN_BUTTON(day_chooser), true);
@@ -211,20 +254,201 @@ static GtkWidget* create_newrun_window()
 
         month_chooser = create_month_chooser();
 
+        /* Create the distance widgets */
+        distance_label = gtk_label_new("Distance");
+        if (database->units == KILOMETERS) {
+                distance_units_label = gtk_label_new(" miles");
+        } else if (database->units == MILES) {
+                distance_units_label = gtk_label_new(" kilometers");
+        }
+
+        distance_adjustment = gtk_adjustment_new(0, 0, 999, .1, 1, 1);
+        distance_chooser = gtk_spin_button_new(distance_adjustment, .1, 1);
+
+        /* Create the duration widgets */
+        duration_grid = gtk_grid_new();
+        duration_label = gtk_label_new("Time");
+        duration_delim_label1 = gtk_label_new(":");
+        duration_delim_label2 = gtk_label_new(":");
+        seconds_buff = gtk_entry_buffer_new("00", 2);
+        minutes_buff = gtk_entry_buffer_new("00", 2);
+        hours_buff = gtk_entry_buffer_new("00", 2);
+        seconds_entry = gtk_entry_new_with_buffer(seconds_buff);
+        minutes_entry = gtk_entry_new_with_buffer(minutes_buff);
+        hours_entry = gtk_entry_new_with_buffer(hours_buff);
+        gtk_entry_set_max_length(GTK_ENTRY(seconds_entry), 2);
+        gtk_entry_set_max_length(GTK_ENTRY(minutes_entry), 2);
+        gtk_entry_set_max_length(GTK_ENTRY(hours_entry), 2);
+        gtk_entry_set_width_chars(GTK_ENTRY(seconds_entry), 2);
+        gtk_entry_set_width_chars(GTK_ENTRY(minutes_entry), 2);
+        gtk_entry_set_width_chars(GTK_ENTRY(hours_entry), 2);
+        gtk_entry_set_icon_tooltip_text(GTK_ENTRY(seconds_entry), 
+                GTK_ENTRY_ICON_PRIMARY, "seconds");
+        gtk_entry_set_icon_tooltip_text(GTK_ENTRY(minutes_entry), 
+                GTK_ENTRY_ICON_PRIMARY, "minutes");
+        gtk_entry_set_icon_tooltip_text(GTK_ENTRY(hours_entry), 
+                GTK_ENTRY_ICON_PRIMARY, "hours");
+
+        /* Create the workout type widgets */
+        workout_type_label = gtk_label_new("Workout Type");
+        gtk_label_set_justify(GTK_LABEL(workout_type_label), GTK_JUSTIFY_LEFT);
+        workout_type_entry = gtk_combo_box_text_new_with_entry();
+
+        /* Create the "How did it feel?" widgets */
+        feel_label = gtk_label_new("How did it feel?");
+        feel_grid = gtk_grid_new();
+        feel1 = gtk_radio_button_new_with_label(NULL, "1");
+        feel2 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(feel1)), "2");
+        feel3 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(feel2)), "3");
+        feel4 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(feel3)), "4");
+        feel5 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(feel4)), "5");
+
+        /* Create the Time of Day widgets */
+        time_label = gtk_label_new("What time was it?");
+        time_grid = gtk_grid_new();
+        time1 = gtk_radio_button_new_with_label(NULL, "Morning");
+        time2 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(time1)), "Mid-Day");
+        time3 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(time2)), "Afternoon");
+        time4 = gtk_radio_button_new_with_label(
+                gtk_radio_button_get_group(GTK_RADIO_BUTTON(time3)), "Evening");
+
+
+        /* Create the route  widgets */
+        route_label = gtk_label_new("Route");
+        gtk_label_set_justify(GTK_LABEL(route_label), GTK_JUSTIFY_LEFT);
+        route_entry = gtk_combo_box_text_new_with_entry();
+
+        /* Create the separatons */
+        int i;
+        for (i = 0; i < 6; i++)
+                separator[i] = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+        separator[6] = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+
+
+        /* Create the list of previously used workout types
+         * and connect them to the combo box
+         */
+        int j;
+        gboolean already_in;
+        gchar **types = NULL;
+        guint ntypes = 0;
+        for (i = 0; i < database->nruns; i++) {
+                already_in = false;
+                for (j = 0; j < ntypes; j++) {
+                        if (g_strcmp0(database->run[i]->type, types[j]) == 0)
+                                already_in = true;
+                }
+                if (!already_in) {
+                        ntypes++;
+                        types = g_realloc(types, ntypes * sizeof(gchar *));
+                        types[ntypes - 1]  = g_malloc(database->run[i]->type_len + 1);
+                        g_strlcpy(types[ntypes - 1], database->run[i]->type,
+                                database->run[i]->type_len + 1);
+                }
+        }
+
+        for (i = 0; i < ntypes; i++) {
+                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(workout_type_entry),
+                        NULL, types[i]);
+                g_free(types[i]);
+        }
+        g_free(types);
+
+        /* Create the list of previously used routes
+         * and connect them to the combo box
+         */
+        gchar **routes = NULL;
+        guint nroutes = 0;
+        for (i = 0; i < database->nruns; i++) {
+                already_in = false;
+                for (j = 0; j < nroutes; j++) {
+                        if (g_strcmp0(database->run[i]->route, routes[j]) == 0)
+                                already_in = true;
+                }
+                if (!already_in) {
+                        nroutes++;
+                        routes = g_realloc(routes, nroutes * sizeof(gchar *));
+                        routes[nroutes - 1]  = g_malloc(database->run[i]->route_len + 1);
+                        g_strlcpy(routes[nroutes - 1], database->run[i]->route,
+                                database->run[i]->route_len + 1);
+                }
+        }
+
+        for (i = 0; i < nroutes; i++) {
+                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(route_entry),
+                        NULL, routes[i]);
+                g_free(routes[i]);
+        }
+        g_free(routes);
+
         /* Populate the data struct */ 
+        new_data.database = database; 
         new_data.newrun = newrun;
         new_data.calendar = GTK_CALENDAR(calendar);
         new_data.day_chooser = GTK_SPIN_BUTTON(day_chooser);
         new_data.month_chooser = GTK_COMBO_BOX_TEXT(month_chooser);
         new_data.year_chooser = GTK_SPIN_BUTTON(year_chooser);
+        new_data.seconds_buff = seconds_buff;
+        new_data.minutes_buff = minutes_buff;
+        new_data.hours_buff = hours_buff;
+        new_data.workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
+        new_data.route_entry = GTK_COMBO_BOX_TEXT(route_entry);
 
         /* Pack everything into the grid */
         gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
-        gtk_grid_attach(GTK_GRID(grid), day_chooser, 0, 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), month_chooser, 1, 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), year_chooser, 2, 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), calendar_button, 3, 1, 1, 1);
 
+        gtk_grid_attach(GTK_GRID(grid), date_label, 0, 1, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), day_chooser, 0, 2, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), month_chooser, 1, 2, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), year_chooser, 2, 2, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), calendar_button, 3, 2, 1, 1);
+
+        gtk_grid_attach(GTK_GRID(grid), distance_label, 0, 5, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), distance_chooser, 0, 6, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), distance_units_label, 1, 6, 1, 1);
+
+        gtk_grid_attach(GTK_GRID(duration_grid), hours_entry, 0, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(duration_grid), duration_delim_label1, 1, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(duration_grid), minutes_entry, 2, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(duration_grid), duration_delim_label2, 3, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(duration_grid), seconds_entry, 4, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), duration_grid, 3, 6, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), duration_label, 3, 5, 1, 1);
+
+        gtk_grid_attach(GTK_GRID(grid), workout_type_label, 0, 8, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), workout_type_entry, 0, 9, 3, 1);
+
+        gtk_grid_attach(GTK_GRID(grid), feel_label, 0, 11, 1, 1);
+        gtk_grid_attach(GTK_GRID(feel_grid), feel1, 0, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(feel_grid), feel2, 1, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(feel_grid), feel3, 2, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(feel_grid), feel4, 3, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(feel_grid), feel5, 4, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), feel_grid, 0, 12, 4, 1);
+ 
+        gtk_grid_attach(GTK_GRID(grid), time_label, 0, 14, 1, 1);
+        gtk_grid_attach(GTK_GRID(time_grid), time1, 0, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(time_grid), time2, 1, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(time_grid), time3, 2, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(time_grid), time4, 3, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), time_grid, 0, 15, 4, 1);
+ 
+        gtk_grid_attach(GTK_GRID(grid), route_label, 0, 17, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), route_entry, 0, 18, 4, 1);
+//4,7,10,13,16
+        gtk_grid_attach(GTK_GRID(grid), separator[0], 0, 4, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[1], 0, 7, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[2], 0, 10, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[3], 0, 13, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[4], 0, 16, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[5], 0, 19, 4, 1);
+        gtk_grid_attach(GTK_GRID(grid), separator[6], 2, 6, 1, 1);
 
         /* Initialize the widgets and new_data */        
         set_date_calendar(GTK_CALENDAR(calendar), (gpointer) &new_data);
@@ -244,7 +468,36 @@ static GtkWidget* create_newrun_window()
                 G_CALLBACK(set_date_year), (gpointer) &new_data);
         g_signal_connect(day_chooser, "changed",
                 G_CALLBACK(set_date_day), (gpointer) &new_data);
-
+        //g_signal_connect(TODO, "activate",
+        //        G_CALLBACK(set_time), (gpointer) &new_data);
+        g_signal_connect(hours_entry, "activate",
+                G_CALLBACK(set_time), (gpointer) &new_data);
+        g_signal_connect(minutes_entry, "activate",
+                G_CALLBACK(set_time), (gpointer) &new_data);
+        g_signal_connect(seconds_entry, "activate",
+                G_CALLBACK(set_time), (gpointer) &new_data);
+        //g_signal_connect(TODO, "clicked",
+        //        G_CALLBACK(set_type), (gpointer) &new_data);
+        g_signal_connect(feel1, "toggled",
+                G_CALLBACK(set_feel_1), (gpointer) &new_data);
+        g_signal_connect(feel2, "toggled",
+                G_CALLBACK(set_feel_2), (gpointer) &new_data);
+        g_signal_connect(feel3, "toggled",
+                G_CALLBACK(set_feel_3), (gpointer) &new_data);
+        g_signal_connect(feel4, "toggled",
+                G_CALLBACK(set_feel_4), (gpointer) &new_data);
+        g_signal_connect(feel5, "toggled",
+                G_CALLBACK(set_feel_5), (gpointer) &new_data);
+        g_signal_connect(time1, "toggled",
+                G_CALLBACK(set_time_1), (gpointer) &new_data);
+        g_signal_connect(time2, "toggled",
+                G_CALLBACK(set_time_2), (gpointer) &new_data);
+        g_signal_connect(time3, "toggled",
+                G_CALLBACK(set_time_3), (gpointer) &new_data);
+        g_signal_connect(time4, "toggled",
+                G_CALLBACK(set_time_4), (gpointer) &new_data);
+        g_signal_connect(calendar_button, "clicked",
+                G_CALLBACK(set_route), (gpointer) &new_data);
         return window;
 }
 
@@ -255,7 +508,7 @@ GtkWidget* create_windows(R2RDatabase *database)
         GtkWidget *runlist_window;
         GtkWidget *newrun_window;
 
-        newrun_window = create_newrun_window();
+        newrun_window = create_newrun_window(database);
         runlist_window = create_runlist_window(newrun_window, database);
 
         /* Return the window we want open at start */

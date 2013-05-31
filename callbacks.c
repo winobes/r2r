@@ -84,6 +84,140 @@ void set_date_day(GtkSpinButton *button, gpointer data)
         update_dates(data);
 }
 
+static void set_time_entry(GtkEntry *entry) 
+{
+        gchar text[3];
+        guint time = strtol(gtk_entry_get_text(entry), NULL, 10);
+        g_snprintf(text, 3, "%i", time);
+        if (time < 10) {
+                text[1] = text[0];
+                text[0] = '0';
+                text[2] = '\n';
+        }
+        gtk_entry_set_text(entry, text);
+}
+
+void set_time(GtkWidget *widget, gpointer data)
+{
+        R2RRun *newrun = ((NEW_DATA*) data)->newrun;
+        GtkEntryBuffer *hours = ((NEW_DATA*) data)->hours_buff;
+        GtkEntryBuffer *minutes = ((NEW_DATA*) data)->minutes_buff;
+        GtkEntryBuffer *seconds = ((NEW_DATA*) data)->seconds_buff;
+
+        set_time_entry(GTK_ENTRY(widget));
+        newrun->duration = 
+                 + strtol(gtk_entry_buffer_get_text(seconds), NULL, 10)
+                 + 60 * strtol(gtk_entry_buffer_get_text(minutes), NULL, 10)
+                 + 60 * 60 * strtol(gtk_entry_buffer_get_text(hours), NULL, 10);
+
+        printf("time = %i seconds\n", newrun->duration);
+}
+
+void set_type(GtkWidget *widget, gpointer data)
+{
+
+        GtkComboBoxText *entry = ((NEW_DATA*) data)->workout_type_entry;
+
+        /* Remember, this must be freed with g_free. If the same pointer is
+         * used when it is appeneded to database, it can be freed with the
+         * rest of database.
+         */
+        gchar *test;
+        ((NEW_DATA*) data)->newrun->type = NULL;
+        ((NEW_DATA*) data)->newrun->type =
+                gtk_combo_box_text_get_active_text(entry);
+printf("set newrun->type string\n");
+        ((NEW_DATA*) data)->newrun->type_len = 
+                g_utf8_strlen(((NEW_DATA*) data)->newrun->type, -1);
+printf("set newrun->type_len\n");
+        printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->type, (int) ((NEW_DATA*) data)->newrun->type_len);
+}
+
+void set_feel_1(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->feel = 1;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
+}
+
+void set_feel_2(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->feel = 2;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
+}
+
+void set_feel_3(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->feel = 3;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
+}
+
+void set_feel_4(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->feel = 4;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
+}
+
+void set_feel_5(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->feel = 5;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
+}
+
+void set_time_1(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->time = 1;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
+}
+
+void set_time_2(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->time = 2;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
+}
+
+void set_time_3(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->time = 3;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
+}
+
+void set_time_4(GtkWidget *widget, gpointer data)
+{
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+                ((NEW_DATA*) data)->newrun->time = 4;
+        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
+}
+
+
+void set_route(GtkWidget *widget, gpointer data)
+{
+
+        GtkComboBoxText *entry = ((NEW_DATA*) data)->route_entry;
+
+        /* Remember, this must be freed with g_free. If the same pointer is
+         * used when it is appeneded to database, it can be freed with the
+         * rest of database.
+         */
+        gchar *test;
+        ((NEW_DATA*) data)->newrun->route = NULL;
+        ((NEW_DATA*) data)->newrun->route =
+                gtk_combo_box_text_get_active_text(entry);
+printf("set newrun->route string\n");
+        ((NEW_DATA*) data)->newrun->route_len = 
+                g_utf8_strlen(((NEW_DATA*) data)->newrun->route, -1);
+printf("set newrun->route_len\n");
+        printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
+}
+
 void refresh_list(GtkWidget *widget, gpointer data)
 {
         int i;

@@ -80,7 +80,7 @@ static int load_database(R2RDatabase *data, char *file)
         int retval = 0;
 
         size_t temp_len = 3;
-        char *temp = malloc(temp_len + 1);
+        char *temp = g_malloc(temp_len + 1);
         if (temp == NULL)
                 return 1; //insufficient memory
 
@@ -104,7 +104,7 @@ static int load_database(R2RDatabase *data, char *file)
          * Number of entries (runs)
          */ 
         data->name_len = csv_get_field_length(buffer, 0, 0);
-        data->name = malloc(data->name_len + 1);
+        data->name = g_malloc(data->name_len + 1);
         csv_get_field(data->name, data->name_len, buffer, 0, 0);
         csv_get_field(temp, temp_len,  buffer, 0, 1);
         data->units = strtol(temp, NULL, 10);
@@ -112,9 +112,9 @@ static int load_database(R2RDatabase *data, char *file)
 
         /* Create body space */
         int i, j; 
-        data->run = malloc(data->nruns * sizeof(R2RRun*));
+        data->run = g_malloc(data->nruns * sizeof(R2RRun*));
         for (i = 0; i < data->nruns; i++) 
-                data->run[i] = malloc(sizeof(R2RRun));
+                data->run[i] = g_malloc(sizeof(R2RRun));
 
         /* Load body */
         for (i = 1; i < data->nruns + 1; i++) {
@@ -127,7 +127,7 @@ static int load_database(R2RDatabase *data, char *file)
         }
         char *temp_temp = realloc(temp, temp_len + 1);
         if (temp_temp == NULL) {
-                free(temp); 
+                g_free(temp); 
                 return 1; // insufficient memory
         } else 
                 temp = temp_temp;
@@ -135,36 +135,45 @@ static int load_database(R2RDatabase *data, char *file)
         for (i = 0; i < data->nruns; i++) {
                 csv_get_field(temp, temp_len, buffer, i+1, 0);
                 data->run[i]->year = strtol(temp, NULL, 10);
+
                 csv_get_field(temp, temp_len, buffer, i+1, 1);
                 data->run[i]->month = strtol(temp, NULL, 10);
+
                 csv_get_field(temp, temp_len, buffer, i+1, 2);
                 data->run[i]->day = strtol(temp, NULL, 10);
+
                 csv_get_field(temp, temp_len, buffer, i+1, 3);
                 data->run[i]->run_n = strtol(temp, NULL, 10);
+
                 csv_get_field(temp, temp_len, buffer, i+1, 4);
                 data->run[i]->distance = strtof(temp, NULL);
+
                 csv_get_field(temp, temp_len, buffer, i+1, 5);
                 data->run[i]->duration= strtof(temp, NULL);
-                csv_get_field(temp, temp_len, buffer, i+1, 6);
-                data->run[i]->type = strtol(temp, NULL, 10);
+
+                 data->run[i]->type_len = csv_get_field_length(buffer, i+1, 6);
+                data->run[i]->type = g_malloc(data->run[i]->type_len + 1);
+                csv_get_field(data->run[i]->type, data->run[i]->type_len, buffer, i+1, 6);
+       
                 csv_get_field(temp, temp_len, buffer, i+1, 7);
                 data->run[i]->feel = strtol(temp, NULL, 10);  
+
                 csv_get_field(temp, temp_len, buffer, i+1, 8);
                 data->run[i]->time = strtol(temp, NULL, 10);
 
                 data->run[i]->route_len = csv_get_field_length(buffer, i+1, 9);
-                data->run[i]->route = malloc(data->run[i]->route_len + 1);
+                data->run[i]->route = g_malloc(data->run[i]->route_len + 1);
                 csv_get_field(data->run[i]->route, data->run[i]->route_len, buffer, i+1, 9);
 
                 data->run[i]->notes_len = csv_get_field_length(buffer, i+1, 10);
-                data->run[i]->notes = malloc(data->run[i]->notes_len + 1);
+                data->run[i]->notes = g_malloc(data->run[i]->notes_len + 1);
                 csv_get_field(data->run[i]->notes, data->run[i]->notes_len, buffer, i+1, 10);
  
         } 
  
         end:
         csv_destroy_buffer(buffer);
-        free(temp);
+        g_free(temp);
         return 0;
 }
 
@@ -173,11 +182,11 @@ void free_database(R2RDatabase *database)
         int i;
         
         for (i = 0; i < database->nruns; i++) {
-                free(database->run[i]->route);
-                free(database->run[i]->notes);
-                free(database->run[i]);
+                g_free(database->run[i]->route);
+                g_free(database->run[i]->notes);
+                g_free(database->run[i]);
         }
-        free(database);
+        g_free(database);
 }
 
 
@@ -185,7 +194,7 @@ void free_database(R2RDatabase *database)
 R2RDatabase* load_data()
 {
         char database_name[MAX_NAME];
-        R2RDatabase *database = malloc(sizeof(R2RDatabase));
+        R2RDatabase *database = g_malloc(sizeof(R2RDatabase));
 
         load_info_file(database_name);
         load_database(database, database_name);
@@ -200,13 +209,13 @@ R2RDatabase* load_data()
 /*
 int main() {
 
-        char *open_database = malloc(MAX_NAME + 1);
+        char *open_database = g_malloc(MAX_NAME + 1);
 
         load_info_file(open_database);
 
         printf("database filename = %s\n", open_database);
 
-        R2RDatabase *data = malloc(sizeof(R2RDatabase));
+        R2RDatabase *data = g_malloc(sizeof(R2RDatabase));
 
         load_database(data, open_database);
 
@@ -214,14 +223,14 @@ int main() {
 
         int i;
         for (i = 0; i < data->nruns; i++) {
-                free(data->run[i]->route);
-                free(data->run[i]->notes);
-                free(data->run[i]);
+                g_free(data->run[i]->route);
+                g_free(data->run[i]->notes);
+                g_free(data->run[i]);
         }
-        free(data->run);
-        free(data->name);        
-        free(data);
-        free(open_database);
+        g_free(data->run);
+        g_free(data->name);        
+        g_free(data);
+        g_free(open_database);
 
         return 0;
 }
