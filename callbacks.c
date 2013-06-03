@@ -104,7 +104,7 @@ void set_time(GtkWidget *widget, gpointer data)
         GtkEntryBuffer *minutes = ((NEW_DATA*) data)->minutes_buff;
         GtkEntryBuffer *seconds = ((NEW_DATA*) data)->seconds_buff;
 
-        set_time_entry(GTK_ENTRY(widget));
+        //set_time_entry(GTK_ENTRY(widget));
         newrun->duration = 
                  + strtol(gtk_entry_buffer_get_text(seconds), NULL, 10)
                  + 60 * strtol(gtk_entry_buffer_get_text(minutes), NULL, 10)
@@ -218,6 +218,27 @@ printf("set newrun->route_len\n");
         printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
 }
 
+void save_new(GtkWidget *widget, gpointer data)
+{
+
+        R2RDatabase *database = ((NEW_DATA*) data)->database;
+        R2RRun *newrun = ((NEW_DATA*) data)->newrun;
+
+        database->nruns++;
+        printf("problem\n");
+        database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));
+        printf("/problem\n");
+
+        database->run[database->nruns-1] = newrun;
+
+        int i;
+        for (i = 0; i < database->nruns; i++) {
+                printf("database %i is at %p.\n", i, database->run[i]);
+        }
+
+}
+        
+
 void refresh_list(GtkWidget *widget, gpointer data)
 {
         int i;
@@ -228,7 +249,12 @@ void refresh_list(GtkWidget *widget, gpointer data)
 
         gtk_list_store_clear(store);
 
+        printf("there are %i runs.\n", database->nruns);
+
+        printf("the firal run is distance %f.\n", database->run[database->nruns-1]->distance);
+
         for (i = 0; i < database->nruns; i++) {
+        printf("appending run %i\n", i);
                 gtk_list_store_append(store, &iter);
                 gtk_list_store_set (store, &iter,
                         YEAR, database->run[i]->year,

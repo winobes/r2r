@@ -205,6 +205,8 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
 
         GtkWidget *route_label;
         GtkWidget *route_entry;
+        
+        GtkWidget *save_button;
 
         GtkWidget *separator[7];
 
@@ -330,6 +332,9 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
                 separator[i] = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
         separator[6] = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
 
+        /* Create the save button */
+        save_button = gtk_button_new_with_label("Save");
+
 
         /* Create the list of previously used workout types
          * and connect them to the combo box
@@ -450,6 +455,8 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
         gtk_grid_attach(GTK_GRID(grid), separator[5], 0, 19, 4, 1);
         gtk_grid_attach(GTK_GRID(grid), separator[6], 2, 6, 1, 1);
 
+        gtk_grid_attach(GTK_GRID(grid), save_button, 4, 21, 1, 1);
+
         /* Initialize the widgets and new_data */        
         set_date_calendar(GTK_CALENDAR(calendar), (gpointer) &new_data);
 
@@ -468,16 +475,16 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
                 G_CALLBACK(set_date_year), (gpointer) &new_data);
         g_signal_connect(day_chooser, "changed",
                 G_CALLBACK(set_date_day), (gpointer) &new_data);
-        //g_signal_connect(TODO, "activate",
-        //        G_CALLBACK(set_time), (gpointer) &new_data);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(set_time), (gpointer) &new_data);
         g_signal_connect(hours_entry, "activate",
                 G_CALLBACK(set_time), (gpointer) &new_data);
         g_signal_connect(minutes_entry, "activate",
                 G_CALLBACK(set_time), (gpointer) &new_data);
         g_signal_connect(seconds_entry, "activate",
                 G_CALLBACK(set_time), (gpointer) &new_data);
-        //g_signal_connect(TODO, "clicked",
-        //        G_CALLBACK(set_type), (gpointer) &new_data);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(set_type), (gpointer) &new_data);
         g_signal_connect(feel1, "toggled",
                 G_CALLBACK(set_feel_1), (gpointer) &new_data);
         g_signal_connect(feel2, "toggled",
@@ -496,8 +503,10 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
                 G_CALLBACK(set_time_3), (gpointer) &new_data);
         g_signal_connect(time4, "toggled",
                 G_CALLBACK(set_time_4), (gpointer) &new_data);
-        g_signal_connect(calendar_button, "clicked",
+        g_signal_connect(save_button, "clicked",
                 G_CALLBACK(set_route), (gpointer) &new_data);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(save_new), (gpointer) &new_data);
         return window;
 }
 
