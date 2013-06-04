@@ -231,6 +231,12 @@ void save_new(GtkWidget *widget, gpointer data)
 
         database->run[database->nruns-1] = newrun;
 
+        ((NEW_DATA*) data)->newrun = g_malloc(sizeof(R2RRun));
+       
+        printf("newrun as malloced %p\n",((NEW_DATA*) data)->newrun);
+
+        gtk_widget_hide(GTK_WIDGET(((NEW_DATA*) data)->newrun_window));  
+
         int i;
         for (i = 0; i < database->nruns; i++) {
                 printf("database %i is at %p.\n", i, database->run[i]);

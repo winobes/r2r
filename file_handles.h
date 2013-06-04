@@ -15,4 +15,6 @@ R2RDatabase* load_data();
  * ----------------------
  * Frees the memory allocated by load_data and load_database
  */
+void free_run(R2RRun *run);
 void free_database(R2RDatabase *database);
+void save_database(char *filename, R2RDatabase *database);

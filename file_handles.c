@@ -177,14 +177,24 @@ static int load_database(R2RDatabase *data, char *file)
         return 0;
 }
 
+void free_run(R2RRun *run)
+{
+        puts("freeing route");
+        g_free(run->route);
+        puts("freeing type");
+        g_free(run->type);
+        puts("freeing notes");
+        g_free(run->notes);
+        puts("freeing run");
+        g_free(run);
+}
+
 void free_database(R2RDatabase *database)
 {
         int i;
         
         for (i = 0; i < database->nruns; i++) {
-                g_free(database->run[i]->route);
-                g_free(database->run[i]->notes);
-                g_free(database->run[i]);
+                free_run(database->run[i]);
         }
         g_free(database);
 }
@@ -202,8 +212,70 @@ R2RDatabase* load_data()
         return database;
 }
 
-         
+void save_database(char *filename, R2RDatabase *database)
+{
 
+        puts("creating csv file");
+        CSV_BUFFER *csv_file = csv_create_buffer();
+        csv_set_text_delim(csv_file, '"');
+        csv_set_field_delim(csv_file, ',');
+
+        char buff[50];
+
+        puts("writing header stuff");
+        csv_set_field(csv_file, 0, 0, database->name);
+
+        g_snprintf(buff, 50, "%i", database->units);
+        csv_set_field(csv_file, 0, 1, buff); 
+ 
+        puts("writing body");
+        int i;
+        for (i = 0; i < database->nruns; i++) {
+        
+                printf("writing date %i\n", i);
+                g_snprintf(buff, 50, "%i", database->run[i]->year);
+                csv_set_field(csv_file, i + 1, 0, buff);
+
+                g_snprintf(buff, 50, "%i", database->run[i]->month);
+                csv_set_field(csv_file, i + 1, 1, buff);
+
+                g_snprintf(buff, 50, "%i", database->run[i]->day);
+                csv_set_field(csv_file, i + 1, 2, buff);
+
+                g_snprintf(buff, 50, "%i", database->run[i]->run_n);
+                csv_set_field(csv_file, i + 1, 3, buff);
+
+                printf("writing distance %i\n", i);
+                g_snprintf(buff, 50, "%f", database->run[i]->distance);
+                csv_set_field(csv_file, i + 1, 4, buff);
+
+                printf("writing duration %i\n", i);
+                g_snprintf(buff, 50, "%i", database->run[i]->duration);
+                csv_set_field(csv_file, i + 1, 5, buff);
+
+                printf("writing type %i\n", i);
+                csv_set_field(csv_file, i + 1, 6, database->run[i]->type);
+
+                printf("writing feel %i\n", i);
+                g_snprintf(buff, 50, "%i", database->run[i]->feel);
+                csv_set_field(csv_file, i + 1, 7, buff);
+
+                printf("writing time %i\n", i);
+                g_snprintf(buff, 50, "%i", database->run[i]->time);
+                csv_set_field(csv_file, i + 1, 8, buff);
+
+                printf("writing route %i\n", i);
+                csv_set_field(csv_file, i + 1, 9, database->run[i]->route);
+
+                printf("writing notes %i\n", i);
+                csv_set_field(csv_file, i + 1, 10, database->run[i]->notes);
+
+        }
+
+        csv_save(filename, csv_file);
+
+}
+               
 //unit tester
 //gcc `pkg-config --cflags gtk+-3.0` -o a file_handles.c `pkg-config --libs gtk+-3.0` -lcsv
 /*

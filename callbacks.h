@@ -8,6 +8,8 @@ typedef struct RUNLIST {
 typedef struct NEW_DATA {
         R2RDatabase *database;
         R2RRun *newrun;
+        GtkWidget *newrun_window;
+        GtkWidget *runlist_window;
         GtkCalendar *calendar;
         GtkSpinButton *day_chooser;
         GtkComboBoxText *month_chooser;

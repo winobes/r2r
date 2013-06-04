@@ -152,7 +152,8 @@ static GtkWidget* create_month_chooser()
         return month_chooser;
 }
 
-static GtkWidget* create_newrun_window(R2RDatabase *database)
+static GtkWidget* create_newrun_window(GtkWidget *runlist_window, 
+                R2RDatabase *database, R2RRun *newrun)
 {
         GtkWidget *window;
         GtkWidget *menubar;
@@ -210,7 +211,8 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
 
         GtkWidget *separator[7];
 
-        R2RRun *newrun = malloc(sizeof(R2RRun));
+        newrun = malloc(sizeof(R2RRun));
+
         static NEW_DATA new_data;
 
         /* Create the window and top grid */ 
@@ -404,6 +406,8 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
         new_data.hours_buff = hours_buff;
         new_data.workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
         new_data.route_entry = GTK_COMBO_BOX_TEXT(route_entry);
+        new_data.newrun_window = window;
+        new_data.runlist_window = runlist_window;
 
         /* Pack everything into the grid */
         gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
@@ -511,13 +515,14 @@ static GtkWidget* create_newrun_window(R2RDatabase *database)
 }
 
 /* Top-Level and shared widgets */
-GtkWidget* create_windows(R2RDatabase *database)
+GtkWidget* create_windows(R2RDatabase *database, R2RRun *newrun)
 {
 
         GtkWidget *runlist_window;
         GtkWidget *newrun_window;
 
-        newrun_window = create_newrun_window(database);
+        newrun_window = create_newrun_window(runlist_window, 
+                        database, newrun);
         runlist_window = create_runlist_window(newrun_window, database);
 
         /* Return the window we want open at start */
