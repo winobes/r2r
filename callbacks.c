@@ -16,11 +16,17 @@ gboolean hide_window(GtkWidget *widget, gpointer data)
 
 void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
 {
+        NEW_DATA *new_data = (NEW_DATA *) data;
+        new_data->edit_index = -1;
+        
+        open_window(GTK_WIDGET(widget), (gpointer) new_data->newrun_window);
 
 }
 
 void init_newrun_window_for_edit(GtkWidget *widget, gpointer data)
 {
+
+        NEW_DATA *new_data = (NEW_DATA *) data;
 
 }
 
@@ -226,23 +232,39 @@ void set_route(GtkWidget *widget, gpointer data)
         printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
 }
 
-void save_new(GtkWidget *widget, gpointer data)
+static void save_new(NEW_DATA* new_data)
 {
 
-        R2RDatabase *database = ((NEW_DATA*) data)->database;
-        R2RRun *newrun = ((NEW_DATA*) data)->newrun;
+        R2RDatabase *database = new_data->database;
+        R2RRun *newrun = new_data->newrun;
 
         database->nruns++;
         database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));
 
         database->run[database->nruns-1] = newrun;
 
-        ((NEW_DATA*) data)->newrun = g_malloc(sizeof(R2RRun));
+        new_data->newrun = g_malloc(sizeof(R2RRun));
 
-        gtk_widget_hide(GTK_WIDGET(((NEW_DATA*) data)->newrun_window));  
+        gtk_widget_hide(GTK_WIDGET(new_data->newrun_window));  
 
 }
+
+static void save_edit(NEW_DATA* new_data)
+{
+
+}
+
+void save(GtkWidget *widget, gpointer data)
+{
+
+        NEW_DATA *new_data = (NEW_DATA*) data;
+        if (new_data->edit_index < 0) 
+                save_new(new_data);
+        else        
+                save_edit(new_data);
+}
         
+/* Runlist window callbacks */
 
 void refresh_list(GtkWidget *widget, gpointer data)
 {
@@ -272,4 +294,9 @@ void refresh_list(GtkWidget *widget, gpointer data)
                         ROUTE, database->run[i]->route,
                         -1);
         }
+}
+
+void destroy_new_data(GtkWidget *widget, gpointer data)
+{
+        g_free(data);
 }

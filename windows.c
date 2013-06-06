@@ -27,7 +27,7 @@ static GtkWidget* create_menubar()
  
 
 static GtkWidget* create_runlist_window(GtkWidget *newrun_window, 
-                                        R2RDatabase *database)
+                        R2RDatabase *database, NEW_DATA *new_data)
 {
         int i; 
 
@@ -120,8 +120,10 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         /* Connect all our callbacks */
         g_signal_connect_swapped(G_OBJECT(window), "destroy",
                 G_CALLBACK(gtk_main_quit), NULL);
+        g_signal_connect(G_OBJECT(window), "destroy",
+                G_CALLBACK(destroy_new_data), (gpointer) new_data);
         g_signal_connect(G_OBJECT(newrun), "clicked",
-                G_CALLBACK(open_window), (gpointer) newrun_window);
+                G_CALLBACK(init_newrun_window_for_new_run), (gpointer) new_data);
         g_signal_connect(G_OBJECT(refresh), "clicked",
                 G_CALLBACK(refresh_list), (gpointer) &runlist);
         
@@ -334,10 +336,9 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         /* Create the save button */
         save_button = gtk_button_new_with_label("Save");
 
-
         /* Create the list of previously used workout types
          * and connect them to the combo box
-         */
+         *//*
         int j;
         gboolean already_in;
         gchar **types = NULL;
@@ -363,10 +364,10 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 g_free(types[i]);
         }
         g_free(types);
-
+*/
         /* Create the list of previously used routes
          * and connect them to the combo box
-         */
+         *//*
         gchar **routes = NULL;
         guint nroutes = 0;
         for (i = 0; i < database->nruns; i++) {
@@ -390,7 +391,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 g_free(routes[i]);
         }
         g_free(routes);
-
+*/
         /* Populate the data struct */ 
         printf("test\n");
         new_data->database = database; 
@@ -447,7 +448,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
  
         gtk_grid_attach(GTK_GRID(grid), route_label, 0, 17, 1, 1);
         gtk_grid_attach(GTK_GRID(grid), route_entry, 0, 18, 4, 1);
-//4,7,10,13,16
+
         gtk_grid_attach(GTK_GRID(grid), separator[0], 0, 4, 4, 1);
         gtk_grid_attach(GTK_GRID(grid), separator[1], 0, 7, 4, 1);
         gtk_grid_attach(GTK_GRID(grid), separator[2], 0, 10, 4, 1);
@@ -459,7 +460,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         gtk_grid_attach(GTK_GRID(grid), save_button, 4, 21, 1, 1);
 
         /* Initialize the widgets and new_data */        
-        set_date_calendar(GTK_CALENDAR(calendar), (gpointer) new_data);
+        //set_date_calendar(GTK_CALENDAR(calendar), (gpointer) new_data);
 
         /* Connect callbacks */
         g_signal_connect(window, "delete-event",
@@ -507,7 +508,8 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(set_route), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
-                G_CALLBACK(save_new), (gpointer) new_data);
+                G_CALLBACK(save), (gpointer) new_data);
+
         return window;
 }
 
@@ -524,7 +526,7 @@ GtkWidget* create_windows(R2RDatabase *database, R2RRun *newrun)
 
         newrun_window = create_newrun_window(runlist_window, 
                         database, new_data);
-        runlist_window = create_runlist_window(newrun_window, database);
+        runlist_window = create_runlist_window(newrun_window, database, new_data);
 
         /* Return the window we want open at start */
         return runlist_window;

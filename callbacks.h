@@ -8,6 +8,7 @@ typedef struct RUNLIST {
 typedef struct NEW_DATA {
         R2RDatabase *database;
         R2RRun *newrun;
+        gint edit_index;
         GtkWidget *newrun_window;
         GtkWidget *runlist_window;
         GtkCalendar *calendar;
@@ -22,6 +23,8 @@ typedef struct NEW_DATA {
 } NEW_DATA;
 
 void open_window(GtkWidget *widget, gpointer data);
+void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data);
+void init_newrun_window_for_edit(GtkWidget *widget, gpointer data);
 
 gboolean hide_window(GtkWidget *window, gpointer data);
  
@@ -41,6 +44,7 @@ void set_time_2(GtkWidget *widget, gpointer data);
 void set_time_3(GtkWidget *widget, gpointer data);
 void set_time_4(GtkWidget *widget, gpointer data);
 void set_route(GtkWidget *widget, gpointer data);
-void save_new(GtkWidget *widget, gpointer data);
+void save(GtkWidget *widget, gpointer data);
 
 void refresh_list(GtkWidget *widget, gpointer data);
+void destroy_new_data(GtkWidget *widget, gpointer data);
