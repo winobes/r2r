@@ -28,6 +28,8 @@ typedef struct R2RRun {
 typedef struct R2RDatabase {
         char *name;
         size_t name_len; //not including null!
+        char *filename;
+        size_t filename_len;
         int units;
         R2RRun **run;
         size_t nruns;

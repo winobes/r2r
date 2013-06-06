@@ -5,7 +5,7 @@ int main (int argc, char *argv[])
 {
 
         R2RDatabase *database;
-        R2RRun *newrun;
+        R2RRun *newrun = malloc(sizeof(R2RRun));
 
         GtkWidget *main_window;
 

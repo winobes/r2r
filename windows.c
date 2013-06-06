@@ -153,7 +153,7 @@ static GtkWidget* create_month_chooser()
 }
 
 static GtkWidget* create_newrun_window(GtkWidget *runlist_window, 
-                R2RDatabase *database, R2RRun *newrun)
+                R2RDatabase *database, NEW_DATA *new_data)
 {
         GtkWidget *window;
         GtkWidget *menubar;
@@ -211,9 +211,6 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
 
         GtkWidget *separator[7];
 
-        newrun = malloc(sizeof(R2RRun));
-
-        static NEW_DATA new_data;
 
         /* Create the window and top grid */ 
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -395,19 +392,19 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         g_free(routes);
 
         /* Populate the data struct */ 
-        new_data.database = database; 
-        new_data.newrun = newrun;
-        new_data.calendar = GTK_CALENDAR(calendar);
-        new_data.day_chooser = GTK_SPIN_BUTTON(day_chooser);
-        new_data.month_chooser = GTK_COMBO_BOX_TEXT(month_chooser);
-        new_data.year_chooser = GTK_SPIN_BUTTON(year_chooser);
-        new_data.seconds_buff = seconds_buff;
-        new_data.minutes_buff = minutes_buff;
-        new_data.hours_buff = hours_buff;
-        new_data.workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
-        new_data.route_entry = GTK_COMBO_BOX_TEXT(route_entry);
-        new_data.newrun_window = window;
-        new_data.runlist_window = runlist_window;
+        printf("test\n");
+        new_data->database = database; 
+        new_data->calendar = GTK_CALENDAR(calendar);
+        new_data->day_chooser = GTK_SPIN_BUTTON(day_chooser);
+        new_data->month_chooser = GTK_COMBO_BOX_TEXT(month_chooser);
+        new_data->year_chooser = GTK_SPIN_BUTTON(year_chooser);
+        new_data->seconds_buff = seconds_buff;
+        new_data->minutes_buff = minutes_buff;
+        new_data->hours_buff = hours_buff;
+        new_data->workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
+        new_data->route_entry = GTK_COMBO_BOX_TEXT(route_entry);
+        new_data->newrun_window = window;
+        new_data->runlist_window = runlist_window;
 
         /* Pack everything into the grid */
         gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
@@ -462,7 +459,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         gtk_grid_attach(GTK_GRID(grid), save_button, 4, 21, 1, 1);
 
         /* Initialize the widgets and new_data */        
-        set_date_calendar(GTK_CALENDAR(calendar), (gpointer) &new_data);
+        set_date_calendar(GTK_CALENDAR(calendar), (gpointer) new_data);
 
         /* Connect callbacks */
         g_signal_connect(window, "delete-event",
@@ -472,45 +469,45 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         g_signal_connect(calendar, "day-selected-double-click",
                 G_CALLBACK(hide_window), (gpointer) calendar_window); 
         g_signal_connect(calendar, "day-selected-double-click",
-                G_CALLBACK(set_date_calendar), (gpointer) &new_data);
+                G_CALLBACK(set_date_calendar), (gpointer) new_data);
         g_signal_connect(month_chooser, "changed",
-                G_CALLBACK(set_date_month), (gpointer) &new_data);
+                G_CALLBACK(set_date_month), (gpointer) new_data);
         g_signal_connect(year_chooser, "changed",
-                G_CALLBACK(set_date_year), (gpointer) &new_data);
+                G_CALLBACK(set_date_year), (gpointer) new_data);
         g_signal_connect(day_chooser, "changed",
-                G_CALLBACK(set_date_day), (gpointer) &new_data);
+                G_CALLBACK(set_date_day), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
-                G_CALLBACK(set_time), (gpointer) &new_data);
+                G_CALLBACK(set_time), (gpointer) new_data);
         g_signal_connect(hours_entry, "activate",
-                G_CALLBACK(set_time), (gpointer) &new_data);
+                G_CALLBACK(set_time), (gpointer) new_data);
         g_signal_connect(minutes_entry, "activate",
-                G_CALLBACK(set_time), (gpointer) &new_data);
+                G_CALLBACK(set_time), (gpointer) new_data);
         g_signal_connect(seconds_entry, "activate",
-                G_CALLBACK(set_time), (gpointer) &new_data);
+                G_CALLBACK(set_time), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
-                G_CALLBACK(set_type), (gpointer) &new_data);
+                G_CALLBACK(set_type), (gpointer) new_data);
         g_signal_connect(feel1, "toggled",
-                G_CALLBACK(set_feel_1), (gpointer) &new_data);
+                G_CALLBACK(set_feel_1), (gpointer) new_data);
         g_signal_connect(feel2, "toggled",
-                G_CALLBACK(set_feel_2), (gpointer) &new_data);
+                G_CALLBACK(set_feel_2), (gpointer) new_data);
         g_signal_connect(feel3, "toggled",
-                G_CALLBACK(set_feel_3), (gpointer) &new_data);
+                G_CALLBACK(set_feel_3), (gpointer) new_data);
         g_signal_connect(feel4, "toggled",
-                G_CALLBACK(set_feel_4), (gpointer) &new_data);
+                G_CALLBACK(set_feel_4), (gpointer) new_data);
         g_signal_connect(feel5, "toggled",
-                G_CALLBACK(set_feel_5), (gpointer) &new_data);
+                G_CALLBACK(set_feel_5), (gpointer) new_data);
         g_signal_connect(time1, "toggled",
-                G_CALLBACK(set_time_1), (gpointer) &new_data);
+                G_CALLBACK(set_time_1), (gpointer) new_data);
         g_signal_connect(time2, "toggled",
-                G_CALLBACK(set_time_2), (gpointer) &new_data);
+                G_CALLBACK(set_time_2), (gpointer) new_data);
         g_signal_connect(time3, "toggled",
-                G_CALLBACK(set_time_3), (gpointer) &new_data);
+                G_CALLBACK(set_time_3), (gpointer) new_data);
         g_signal_connect(time4, "toggled",
-                G_CALLBACK(set_time_4), (gpointer) &new_data);
+                G_CALLBACK(set_time_4), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
-                G_CALLBACK(set_route), (gpointer) &new_data);
+                G_CALLBACK(set_route), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
-                G_CALLBACK(save_new), (gpointer) &new_data);
+                G_CALLBACK(save_new), (gpointer) new_data);
         return window;
 }
 
@@ -521,8 +518,12 @@ GtkWidget* create_windows(R2RDatabase *database, R2RRun *newrun)
         GtkWidget *runlist_window;
         GtkWidget *newrun_window;
 
+        NEW_DATA *new_data = g_malloc(sizeof(NEW_DATA));
+        new_data->newrun = newrun;
+
+
         newrun_window = create_newrun_window(runlist_window, 
-                        database, newrun);
+                        database, new_data);
         runlist_window = create_runlist_window(newrun_window, database);
 
         /* Return the window we want open at start */

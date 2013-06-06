@@ -14,6 +14,16 @@ gboolean hide_window(GtkWidget *widget, gpointer data)
         return true;
 }
 
+void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
+{
+
+}
+
+void init_newrun_window_for_edit(GtkWidget *widget, gpointer data)
+{
+
+}
+
 static update_dates(gpointer data)
 {
         guint year = ((NEW_DATA *) data)->newrun->year;
@@ -211,10 +221,8 @@ void set_route(GtkWidget *widget, gpointer data)
         ((NEW_DATA*) data)->newrun->route = NULL;
         ((NEW_DATA*) data)->newrun->route =
                 gtk_combo_box_text_get_active_text(entry);
-printf("set newrun->route string\n");
         ((NEW_DATA*) data)->newrun->route_len = 
                 g_utf8_strlen(((NEW_DATA*) data)->newrun->route, -1);
-printf("set newrun->route_len\n");
         printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
 }
 
@@ -225,22 +233,13 @@ void save_new(GtkWidget *widget, gpointer data)
         R2RRun *newrun = ((NEW_DATA*) data)->newrun;
 
         database->nruns++;
-        printf("problem\n");
         database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));
-        printf("/problem\n");
 
         database->run[database->nruns-1] = newrun;
 
         ((NEW_DATA*) data)->newrun = g_malloc(sizeof(R2RRun));
-       
-        printf("newrun as malloced %p\n",((NEW_DATA*) data)->newrun);
 
         gtk_widget_hide(GTK_WIDGET(((NEW_DATA*) data)->newrun_window));  
-
-        int i;
-        for (i = 0; i < database->nruns; i++) {
-                printf("database %i is at %p.\n", i, database->run[i]);
-        }
 
 }
         
@@ -256,8 +255,6 @@ void refresh_list(GtkWidget *widget, gpointer data)
         gtk_list_store_clear(store);
 
         printf("there are %i runs.\n", database->nruns);
-
-        printf("the firal run is distance %f.\n", database->run[database->nruns-1]->distance);
 
         for (i = 0; i < database->nruns; i++) {
         printf("appending run %i\n", i);

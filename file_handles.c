@@ -11,7 +11,7 @@
  *  1: cannot find "info.dat"
  *  2: "info.dat" is corrupted.
  */
-static int load_info_file(char *open_database)
+static int load_info_file(R2RDatabase *database)
 {
 
         int ch = '\0';
@@ -46,20 +46,38 @@ static int load_info_file(char *open_database)
                 if (ch == EOF) 
                         return 2;
         }
+        fpos_t pos;
+        fgetpos(fp, &pos);
         ch = getc(fp);
 
-        /* Reading the database name */
+        /* Counting the charecters in database name */
         i = 0;
-        while (ch != '\n') {
-                temp[i] = ch;
-                ch = getc(fp);
+        char cch;
+        while (cch != '\n') {
+                printf("%c\n",cch);
+                cch = getc(fp);
                 i++;
-                if (ch == EOF || i > MAX_NAME)
+                if (cch == EOF)
                         return 2;
         }
 
-        temp[i] = '\0';
-        strcpy(open_database, temp);
+        /* Allocating filename space */
+        database->filename_len = i + 1;
+        database->filename = g_malloc(database->filename_len + 1);
+
+        /* Reading the database name */
+        fsetpos(fp, &pos);
+        i = 0;
+        while (ch != '\n') {
+                printf("ch = %c\n",ch);
+                ch = getc(fp);
+                database->filename[i] = ch;
+                i++;
+                if (ch == EOF)
+                        return 2;
+        }
+
+        database->filename[i-1] = '\0';
         fclose(fp);
 
         return 0;
@@ -74,7 +92,7 @@ static int load_info_file(char *open_database)
  *  1: cannot find the given file
  *  2: database file is corrupted
  */
-static int load_database(R2RDatabase *data, char *file)
+static int load_database(R2RDatabase *data)
 {
 
         int retval = 0;
@@ -86,10 +104,9 @@ static int load_database(R2RDatabase *data, char *file)
 
         size_t path_len = 5;
 
-        size_t full_len = path_len + MAX_NAME;
-        char full_path[full_len + 1];
+        char full_path[data->filename_len + path_len + 1];
         strcpy(full_path, "data/");
-        strcat(full_path, file);
+        strcat(full_path, data->filename);
 
         CSV_BUFFER *buffer = csv_create_buffer();
         if (csv_load(buffer, full_path) != 0) {
@@ -177,6 +194,16 @@ static int load_database(R2RDatabase *data, char *file)
         return 0;
 }
 
+R2RDatabase* load_data()
+{
+        R2RDatabase *database = g_malloc(sizeof(R2RDatabase));
+
+        load_info_file(database);
+        load_database(database);
+
+        return database;
+}
+
 void free_run(R2RRun *run)
 {
         puts("freeing route");
@@ -197,19 +224,6 @@ void free_database(R2RDatabase *database)
                 free_run(database->run[i]);
         }
         g_free(database);
-}
-
-
-
-R2RDatabase* load_data()
-{
-        char database_name[MAX_NAME];
-        R2RDatabase *database = g_malloc(sizeof(R2RDatabase));
-
-        load_info_file(database_name);
-        load_database(database, database_name);
-
-        return database;
 }
 
 void save_database(char *filename, R2RDatabase *database)
