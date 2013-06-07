@@ -4,6 +4,7 @@ void open_window(GtkWidget *widget, gpointer data)
 {
         GtkWidget *window = data;
         gtk_widget_show_all(window);
+        gtk_window_present(GTK_WINDOW(window));
 }
 
 gboolean hide_window(GtkWidget *widget, gpointer data)
@@ -109,6 +110,9 @@ void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
 
         // setting the morning button active
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time1), true);
+        
+        //clearing the notes buffer
+        gtk_text_buffer_set_text(new_data->notes_buff, "\0", -1);
 
         open_window(GTK_WIDGET(widget), (gpointer) new_data->newrun_window);
 
@@ -324,17 +328,40 @@ void set_route(GtkWidget *widget, gpointer data)
         printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
 }
 
+void set_notes(GtkWidget *widget, gpointer data)
+{
+        GtkTextBuffer *notes_buff = ((NEW_DATA*) data)->notes_buff;
+        R2RRun *new_run = ((NEW_DATA*) data)->newrun;
+
+        GtkTextIter start;
+        GtkTextIter end;
+
+        gtk_text_buffer_get_bounds(notes_buff, &start, &end);
+
+         new_run->notes_len = gtk_text_iter_get_visible_line_offset(&end) - 
+                gtk_text_iter_get_visible_line_offset(&start);
+        
+        new_run->notes = malloc(new_run->notes_len);
+
+        new_run->notes = gtk_text_buffer_get_text(notes_buff, &start, &end,
+                false);
+
+        printf("newrun->notes = %s\n", new_run->notes);
+}
+        
+
 static void save_new(NEW_DATA* new_data)
 {
 
         R2RDatabase *database = new_data->database;
         R2RRun *newrun = new_data->newrun;
 
+        /* make space in the database for the new run and move it*/
         database->nruns++;
-        database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));
-
+        database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));    
         database->run[database->nruns-1] = newrun;
 
+        /* allocate space for another new run */
         new_data->newrun = g_malloc(sizeof(R2RRun));
 
         gtk_widget_hide(GTK_WIDGET(new_data->newrun_window));  

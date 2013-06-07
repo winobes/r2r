@@ -282,6 +282,8 @@ void save_database(char *filename, R2RDatabase *database)
                 csv_set_field(csv_file, i + 1, 9, database->run[i]->route);
 
                 printf("writing notes %i\n", i);
+                printf("notes pointer = %p\n", database->run[i]->notes);
+                printf("notes = %s\n", database->run[i]->notes);
                 csv_set_field(csv_file, i + 1, 10, database->run[i]->notes);
 
         }

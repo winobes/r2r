@@ -23,6 +23,7 @@ typedef struct NEW_DATA {
         GtkRadioButton *time1;
         GtkComboBoxText *workout_type_entry;
         GtkComboBoxText *route_entry;
+        GtkTextBuffer *notes_buff;
 } NEW_DATA;
 
 void open_window(GtkWidget *widget, gpointer data);
@@ -47,6 +48,7 @@ void set_time_2(GtkWidget *widget, gpointer data);
 void set_time_3(GtkWidget *widget, gpointer data);
 void set_time_4(GtkWidget *widget, gpointer data);
 void set_route(GtkWidget *widget, gpointer data);
+void set_notes(GtkWidget *widget, gpointer data);
 void save(GtkWidget *widget, gpointer data);
 
 void refresh_list(GtkWidget *widget, gpointer data);

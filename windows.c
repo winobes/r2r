@@ -211,7 +211,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         
         GtkWidget *notes_button;
         GtkWidget *notes_window;
-        GtkWidget *notes_grid;
+        GtkWidget *notes_scrolled_window;
         GtkWidget *notes_entry;
         GtkTextBuffer *notes_buff;
         
@@ -248,8 +248,6 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 GTK_WIN_POS_MOUSE);
         calendar_grid = gtk_grid_new();
         gtk_container_add(GTK_CONTAINER(calendar_window), calendar_grid);
-        gtk_grid_attach(GTK_GRID(calendar_grid), calendar, 0, 0, 1, 1);
-
         /* Create the date choosers */
         date_label = gtk_label_new("Date");
 
@@ -335,17 +333,22 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
 
         /* Create the notes window */
         notes_button = gtk_button_new_with_label("Notes");
-        notes_window = gtk_scrolled_window_new(NULL, NULL);
+        notes_window = gtk_window_new(GTK_WINDOW_TOPLEVEL); 
         gtk_window_set_position(GTK_WINDOW(notes_window), GTK_WIN_POS_CENTER);
-        gtk_window_set_default_size(GTK_WINDOW(notes_window), 400, 100);
-        notes_grid = gtk_grid_new();
+        gtk_window_set_default_size(GTK_WINDOW(notes_window), 300, 75);
+        gtk_window_set_position(GTK_WINDOW(notes_window), 
+                GTK_WIN_POS_CENTER);
+        notes_scrolled_window = gtk_scrolled_window_new(NULL, NULL); 
         notes_buff = gtk_text_buffer_new(NULL);
         notes_entry = gtk_text_view_new_with_buffer(notes_buff);
-        gtk_text_view_set_right_margin(GTK_TEXT_VIEW(notes_entry), 400);
         gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(notes_entry), GTK_WRAP_WORD_CHAR);
-        gtk_container_add(GTK_CONTAINER(notes_window), notes_grid);
-        gtk_grid_attach(GTK_GRID(notes_grid), notes_entry, 0, 0, 1, 1);
+        gtk_container_add(GTK_CONTAINER(notes_scrolled_window), 
+                notes_entry);
+        gtk_container_add(GTK_CONTAINER(notes_window), 
+                notes_scrolled_window);
 
+        g_signal_connect(notes_window, "delete-event",
+                G_CALLBACK(gtk_widget_hide_on_delete), NULL); 
 
         /* Create the separatons */
         int i;
@@ -372,6 +375,7 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         new_data->route_entry = GTK_COMBO_BOX_TEXT(route_entry);
         new_data->newrun_window = window;
         new_data->runlist_window = runlist_window;
+        new_data->notes_buff = GTK_TEXT_BUFFER(notes_buff);
 
 
         /* Pack everything into the grid */
@@ -476,8 +480,12 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 G_CALLBACK(set_route), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(save), (gpointer) new_data);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(hide_window), notes_window);
         g_signal_connect(G_OBJECT(notes_button), "clicked",
                 G_CALLBACK(open_window), (gpointer) notes_window);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(set_notes), (gpointer) new_data);
 
         return window;
 }
