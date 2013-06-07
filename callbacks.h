@@ -12,12 +12,15 @@ typedef struct NEW_DATA {
         GtkWidget *newrun_window;
         GtkWidget *runlist_window;
         GtkCalendar *calendar;
+        GtkSpinButton *distance_chooser;
         GtkSpinButton *day_chooser;
         GtkComboBoxText *month_chooser;
         GtkSpinButton *year_chooser;
         GtkEntryBuffer *seconds_buff;
         GtkEntryBuffer *minutes_buff;
         GtkEntryBuffer *hours_buff;
+        GtkRadioButton *feel3;
+        GtkRadioButton *time1;
         GtkComboBoxText *workout_type_entry;
         GtkComboBoxText *route_entry;
 } NEW_DATA;

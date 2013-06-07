@@ -14,11 +14,102 @@ gboolean hide_window(GtkWidget *widget, gpointer data)
         return true;
 }
 
+static void populate_MRUs(NEW_DATA *new_data)
+{
+
+        /* Create the list of previously used workout types
+         * and connect them to the combo box
+         */
+
+        R2RDatabase *database = new_data->database;
+        GtkComboBoxText *workout_type_entry = new_data->workout_type_entry;
+        GtkComboBoxText *route_entry = new_data->route_entry;
+
+        int i, j;
+        gboolean already_in;
+        gchar **types = NULL;
+        guint ntypes = 0;
+        for (i = 0; i < database->nruns; i++) {
+                already_in = false;
+                for (j = 0; j < ntypes; j++) {
+                        if (g_strcmp0(database->run[i]->type, types[j]) == 0)
+                                already_in = true;
+                }
+                if (!already_in) {
+                        ntypes++;
+                        types = g_realloc(types, ntypes * sizeof(gchar *));
+                        types[ntypes - 1]  = g_malloc(database->run[i]->type_len + 1);
+                        g_strlcpy(types[ntypes - 1], database->run[i]->type,
+                                database->run[i]->type_len + 1);
+                }
+        }
+
+        gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(workout_type_entry));
+        for (i = 0; i < ntypes; i++) {
+                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(workout_type_entry),
+                        NULL, types[i]);
+                g_free(types[i]);
+        }
+        g_free(types);
+
+        /* Create the list of previously used routes
+         * and connect them to the combo box
+         */
+        gchar **routes = NULL;
+        guint nroutes = 0;
+        for (i = 0; i < database->nruns; i++) {
+                already_in = false;
+                for (j = 0; j < nroutes; j++) {
+                        if (g_strcmp0(database->run[i]->route, routes[j]) == 0)
+                                already_in = true;
+                }
+                if (!already_in) {
+                        nroutes++;
+                        routes = g_realloc(routes, nroutes * sizeof(gchar *));
+                        routes[nroutes - 1]  = g_malloc(database->run[i]->route_len + 1);
+                        g_strlcpy(routes[nroutes - 1], database->run[i]->route,
+                                database->run[i]->route_len + 1);
+                }
+        }
+
+        gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(route_entry));
+        for (i = 0; i < nroutes; i++) {
+                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(route_entry),
+                        NULL, routes[i]);
+                g_free(routes[i]);
+        }
+        g_free(routes);
+}
+
+
 void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
 {
         NEW_DATA *new_data = (NEW_DATA *) data;
         new_data->edit_index = -1;
-        
+        populate_MRUs(new_data);
+
+        // keep deault date (today)
+        set_date_calendar(GTK_CALENDAR(new_data->calendar), (gpointer) new_data);
+
+        // setting the distance to 0
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(new_data->distance_chooser), 0);
+
+        // setting the time fields to 0
+        gtk_entry_buffer_set_text(new_data->seconds_buff, "00", 2);
+        gtk_entry_buffer_set_text(new_data->minutes_buff, "00", 2);
+        gtk_entry_buffer_set_text(new_data->hours_buff, "00", 2); 
+
+        printf("setting combobox to nothing!!\n");
+        //TODO why doesn't this work?
+        gtk_combo_box_set_active(GTK_COMBO_BOX(new_data->route_entry), -1);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(new_data->workout_type_entry), -1); 
+
+        // setting the feel3 button active 
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel3), true);
+
+        // setting the morning button active
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time1), true);
+
         open_window(GTK_WIDGET(widget), (gpointer) new_data->newrun_window);
 
 }
@@ -27,6 +118,7 @@ void init_newrun_window_for_edit(GtkWidget *widget, gpointer data)
 {
 
         NEW_DATA *new_data = (NEW_DATA *) data;
+        populate_MRUs(new_data);
 
 }
 
@@ -276,7 +368,7 @@ void refresh_list(GtkWidget *widget, gpointer data)
 
         gtk_list_store_clear(store);
 
-        printf("there are %i runs.\n", database->nruns);
+        printf("there are %i runs.\n", (int) database->nruns);
 
         for (i = 0; i < database->nruns; i++) {
         printf("appending run %i\n", i);

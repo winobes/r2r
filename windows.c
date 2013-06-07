@@ -209,6 +209,12 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         GtkWidget *route_label;
         GtkWidget *route_entry;
         
+        GtkWidget *notes_button;
+        GtkWidget *notes_window;
+        GtkWidget *notes_grid;
+        GtkWidget *notes_entry;
+        GtkTextBuffer *notes_buff;
+        
         GtkWidget *save_button;
 
         GtkWidget *separator[7];
@@ -327,6 +333,20 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         gtk_label_set_justify(GTK_LABEL(route_label), GTK_JUSTIFY_LEFT);
         route_entry = gtk_combo_box_text_new_with_entry();
 
+        /* Create the notes window */
+        notes_button = gtk_button_new_with_label("Notes");
+        notes_window = gtk_scrolled_window_new(NULL, NULL);
+        gtk_window_set_position(GTK_WINDOW(notes_window), GTK_WIN_POS_CENTER);
+        gtk_window_set_default_size(GTK_WINDOW(notes_window), 400, 100);
+        notes_grid = gtk_grid_new();
+        notes_buff = gtk_text_buffer_new(NULL);
+        notes_entry = gtk_text_view_new_with_buffer(notes_buff);
+        gtk_text_view_set_right_margin(GTK_TEXT_VIEW(notes_entry), 400);
+        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(notes_entry), GTK_WRAP_WORD_CHAR);
+        gtk_container_add(GTK_CONTAINER(notes_window), notes_grid);
+        gtk_grid_attach(GTK_GRID(notes_grid), notes_entry, 0, 0, 1, 1);
+
+
         /* Create the separatons */
         int i;
         for (i = 0; i < 6; i++)
@@ -336,76 +356,23 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         /* Create the save button */
         save_button = gtk_button_new_with_label("Save");
 
-        /* Create the list of previously used workout types
-         * and connect them to the combo box
-         *//*
-        int j;
-        gboolean already_in;
-        gchar **types = NULL;
-        guint ntypes = 0;
-        for (i = 0; i < database->nruns; i++) {
-                already_in = false;
-                for (j = 0; j < ntypes; j++) {
-                        if (g_strcmp0(database->run[i]->type, types[j]) == 0)
-                                already_in = true;
-                }
-                if (!already_in) {
-                        ntypes++;
-                        types = g_realloc(types, ntypes * sizeof(gchar *));
-                        types[ntypes - 1]  = g_malloc(database->run[i]->type_len + 1);
-                        g_strlcpy(types[ntypes - 1], database->run[i]->type,
-                                database->run[i]->type_len + 1);
-                }
-        }
-
-        for (i = 0; i < ntypes; i++) {
-                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(workout_type_entry),
-                        NULL, types[i]);
-                g_free(types[i]);
-        }
-        g_free(types);
-*/
-        /* Create the list of previously used routes
-         * and connect them to the combo box
-         *//*
-        gchar **routes = NULL;
-        guint nroutes = 0;
-        for (i = 0; i < database->nruns; i++) {
-                already_in = false;
-                for (j = 0; j < nroutes; j++) {
-                        if (g_strcmp0(database->run[i]->route, routes[j]) == 0)
-                                already_in = true;
-                }
-                if (!already_in) {
-                        nroutes++;
-                        routes = g_realloc(routes, nroutes * sizeof(gchar *));
-                        routes[nroutes - 1]  = g_malloc(database->run[i]->route_len + 1);
-                        g_strlcpy(routes[nroutes - 1], database->run[i]->route,
-                                database->run[i]->route_len + 1);
-                }
-        }
-
-        for (i = 0; i < nroutes; i++) {
-                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(route_entry),
-                        NULL, routes[i]);
-                g_free(routes[i]);
-        }
-        g_free(routes);
-*/
         /* Populate the data struct */ 
-        printf("test\n");
         new_data->database = database; 
         new_data->calendar = GTK_CALENDAR(calendar);
+        new_data->distance_chooser = GTK_SPIN_BUTTON(distance_chooser);
         new_data->day_chooser = GTK_SPIN_BUTTON(day_chooser);
         new_data->month_chooser = GTK_COMBO_BOX_TEXT(month_chooser);
         new_data->year_chooser = GTK_SPIN_BUTTON(year_chooser);
         new_data->seconds_buff = seconds_buff;
         new_data->minutes_buff = minutes_buff;
         new_data->hours_buff = hours_buff;
+        new_data->feel3 = GTK_RADIO_BUTTON(feel3);
+        new_data->time1 = GTK_RADIO_BUTTON(time1);
         new_data->workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
         new_data->route_entry = GTK_COMBO_BOX_TEXT(route_entry);
         new_data->newrun_window = window;
         new_data->runlist_window = runlist_window;
+
 
         /* Pack everything into the grid */
         gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
@@ -457,10 +424,10 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         gtk_grid_attach(GTK_GRID(grid), separator[5], 0, 19, 4, 1);
         gtk_grid_attach(GTK_GRID(grid), separator[6], 2, 6, 1, 1);
 
-        gtk_grid_attach(GTK_GRID(grid), save_button, 4, 21, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), save_button, 3, 21, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), notes_button, 0, 21, 1, 1);
 
         /* Initialize the widgets and new_data */        
-        //set_date_calendar(GTK_CALENDAR(calendar), (gpointer) new_data);
 
         /* Connect callbacks */
         g_signal_connect(window, "delete-event",
@@ -509,6 +476,8 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 G_CALLBACK(set_route), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(save), (gpointer) new_data);
+        g_signal_connect(G_OBJECT(notes_button), "clicked",
+                G_CALLBACK(open_window), (gpointer) notes_window);
 
         return window;
 }
