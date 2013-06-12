@@ -62,4 +62,7 @@ enum {
         EVENING,
 } time_of_day;
 
+size_t path_len;
+char *path;
+
 #endif /* R2R_H */

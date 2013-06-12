@@ -484,8 +484,6 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 G_CALLBACK(hide_window), notes_window);
         g_signal_connect(G_OBJECT(notes_button), "clicked",
                 G_CALLBACK(open_window), (gpointer) notes_window);
-        g_signal_connect(save_button, "clicked",
-                G_CALLBACK(set_notes), (gpointer) new_data);
 
         return window;
 }

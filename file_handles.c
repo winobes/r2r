@@ -102,10 +102,9 @@ static int load_database(R2RDatabase *data)
         if (temp == NULL)
                 return 1; //insufficient memory
 
-        size_t path_len = 5;
 
         char full_path[data->filename_len + path_len + 1];
-        strcpy(full_path, "data/");
+        strcpy(full_path, path);
         strcat(full_path, data->filename);
 
         CSV_BUFFER *buffer = csv_create_buffer();
@@ -226,7 +225,7 @@ void free_database(R2RDatabase *database)
         g_free(database);
 }
 
-void save_database(char *filename, R2RDatabase *database)
+void save_database(R2RDatabase *database)
 {
 
         puts("creating csv file");
@@ -288,7 +287,11 @@ void save_database(char *filename, R2RDatabase *database)
 
         }
 
-        csv_save(filename, csv_file);
+        char full_path[database->filename_len + path_len + 1];
+        strcpy(full_path, path);
+        strcat(full_path, database->filename);
+
+        csv_save(full_path, csv_file);
 
 }
                

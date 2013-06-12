@@ -17,4 +17,4 @@ R2RDatabase* load_data();
  */
 void free_run(R2RRun *run);
 void free_database(R2RDatabase *database);
-void save_database(char *filename, R2RDatabase *database);
+void save_database(R2RDatabase *database);

@@ -4,6 +4,10 @@
 int main (int argc, char *argv[]) 
 {
 
+        path_len = 5;
+        path = g_malloc(path_len + 1);
+        g_snprintf(path, path_len + 1, "%s", "data/");
+
         R2RDatabase *database;
         R2RRun *newrun = malloc(sizeof(R2RRun));
 
@@ -17,8 +21,10 @@ int main (int argc, char *argv[])
         gtk_widget_show_all(main_window);
         gtk_main();
 
-        save_database("data/save.r2r", database);
+        save_database(database);
         free_database(database);
+        g_free(path);
+
         return 0;
 
 }

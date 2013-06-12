@@ -221,8 +221,6 @@ void set_time(GtkWidget *widget, gpointer data)
                  + strtol(gtk_entry_buffer_get_text(seconds), NULL, 10)
                  + 60 * strtol(gtk_entry_buffer_get_text(minutes), NULL, 10)
                  + 60 * 60 * strtol(gtk_entry_buffer_get_text(hours), NULL, 10);
-
-        printf("time = %i seconds\n", newrun->duration);
 }
 
 void set_type(GtkWidget *widget, gpointer data)
@@ -238,46 +236,38 @@ void set_type(GtkWidget *widget, gpointer data)
         ((NEW_DATA*) data)->newrun->type = NULL;
         ((NEW_DATA*) data)->newrun->type =
                 gtk_combo_box_text_get_active_text(entry);
-printf("set newrun->type string\n");
         ((NEW_DATA*) data)->newrun->type_len = 
                 g_utf8_strlen(((NEW_DATA*) data)->newrun->type, -1);
-printf("set newrun->type_len\n");
-        printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->type, (int) ((NEW_DATA*) data)->newrun->type_len);
 }
 
 void set_feel_1(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->feel = 1;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
 }
 
 void set_feel_2(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->feel = 2;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
 }
 
 void set_feel_3(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->feel = 3;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
 }
 
 void set_feel_4(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->feel = 4;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
 }
 
 void set_feel_5(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->feel = 5;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->feel);
 }
 
 void set_time_1(GtkWidget *widget, gpointer data)
@@ -285,28 +275,24 @@ void set_time_1(GtkWidget *widget, gpointer data)
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->time = 1;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
 }
 
 void set_time_2(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->time = 2;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
 }
 
 void set_time_3(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->time = 3;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
 }
 
 void set_time_4(GtkWidget *widget, gpointer data)
 {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
                 ((NEW_DATA*) data)->newrun->time = 4;
-        printf("%i\n", ((NEW_DATA*) data)->newrun->time);
 }
 
 
@@ -325,41 +311,36 @@ void set_route(GtkWidget *widget, gpointer data)
                 gtk_combo_box_text_get_active_text(entry);
         ((NEW_DATA*) data)->newrun->route_len = 
                 g_utf8_strlen(((NEW_DATA*) data)->newrun->route, -1);
-        printf("%s(%i)\n", ((NEW_DATA*) data)->newrun->route, (int) ((NEW_DATA*) data)->newrun->route_len);
 }
 
-void set_notes(GtkWidget *widget, gpointer data)
+static void set_notes(R2RRun *run, GtkTextBuffer *notes_buff)
 {
-        GtkTextBuffer *notes_buff = ((NEW_DATA*) data)->notes_buff;
-        R2RRun *new_run = ((NEW_DATA*) data)->newrun;
 
         GtkTextIter start;
         GtkTextIter end;
 
         gtk_text_buffer_get_bounds(notes_buff, &start, &end);
 
-         new_run->notes_len = gtk_text_iter_get_visible_line_offset(&end) - 
+         run->notes_len = gtk_text_iter_get_visible_line_offset(&end) - 
                 gtk_text_iter_get_visible_line_offset(&start);
         
-        new_run->notes = malloc(new_run->notes_len);
+        run->notes = g_realloc(run->notes, run->notes_len + 1);
 
-        new_run->notes = gtk_text_buffer_get_text(notes_buff, &start, &end,
-                false);
-
-        printf("newrun->notes = %s\n", new_run->notes);
+        g_snprintf(run->notes, run->notes_len + 1, "%s", gtk_text_buffer_get_text(notes_buff, &start, &end, false));
 }
         
 
 static void save_new(NEW_DATA* new_data)
 {
-
         R2RDatabase *database = new_data->database;
-        R2RRun *newrun = new_data->newrun;
+        R2RRun *new_run = new_data->newrun;
 
+        set_notes(new_run, new_data->notes_buff);
+        
         /* make space in the database for the new run and move it*/
         database->nruns++;
         database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));    
-        database->run[database->nruns-1] = newrun;
+        database->run[database->nruns-1] = new_run;
 
         /* allocate space for another new run */
         new_data->newrun = g_malloc(sizeof(R2RRun));

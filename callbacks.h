@@ -48,7 +48,6 @@ void set_time_2(GtkWidget *widget, gpointer data);
 void set_time_3(GtkWidget *widget, gpointer data);
 void set_time_4(GtkWidget *widget, gpointer data);
 void set_route(GtkWidget *widget, gpointer data);
-void set_notes(GtkWidget *widget, gpointer data);
 void save(GtkWidget *widget, gpointer data);
 
 void refresh_list(GtkWidget *widget, gpointer data);
