@@ -197,12 +197,41 @@ void init_newrun_window_for_edit(GtkWidget *widget, gpointer data)
         gtk_entry_set_text(GTK_ENTRY(entry), 
                 new_data->database->run[new_data->edit_index]->type); 
 
-        // setting the feel3 button active  TODO set these correctly
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel3), true);
+        // setting the feel button active 
+        switch (new_data->database->run[new_data->edit_index]->feel) {
+        case 1:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel1), true);
+                break;
+        case 2:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel2), true);
+                break;
+        case 3:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel3), true);
+                break;
+        case 4:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel4), true);
+                break;
+        case 5:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel5), true);
+                break;
+        }
 
-        // setting the morning button active TODO sete these correctly
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time1), true);
-        
+        // setting the time of day button active
+        switch (new_data->database->run[new_data->edit_index]->time) {
+        case 1:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time1), true);
+                break;
+        case 2:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time2), true);
+                break;
+        case 3:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time3), true);
+                break;
+        case 4:
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time4), true);
+                break;
+        }
+
         //clearing the notes buffer
         gtk_text_buffer_set_text(new_data->notes_buff,
                 new_data->database->run[new_data->edit_index]->notes, 

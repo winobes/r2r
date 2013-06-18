@@ -1,20 +1,20 @@
 Test Subject,1
-2021,0,26,0,0.000000,0,Type 2,3,0,Different Route,Some Notes
+2021,0,26,0,0.000000,0,Type 2,3,4,Different Route,Some Notes
 0,3,0,0,13.000000,0,semitn,0,4,Different Route,
-2013,3,17,2,5.100000,25,Type 1,5,3,Different Route,"This was so great, I did great yay!!!"
+2013,3,17,0,5.100000,25,Type 1,1,4,Different Route,
 2021,0,26,0,0.000000,0,Type 2,3,0,sometihng,
-2013,5,12,0,0.000000,3846,semitn,3,4,Red Route,
+2013,5,12,0,0.000000,3846,semitn,2,4,Red Route,Some Notes
 2013,5,12,0,0.000000,3000,,3,0,sometihng,
 2013,5,12,0,0.000000,3000,Type 2,3,0,Different Route,Some Notes
 2013,0,13,0,8.000000,69365,Difficult,3,1,sometihng,Some Notes
 2013,5,18,0,0.100000,1,Type 1,3,0,semitn,Some Notes
-2013,5,18,0,0.200000,2,,3,0,sometihng,
+2013,5,18,0,0.200000,2,,3,4,sometihng,
 2013,5,18,0,0.300000,3,,3,0,semitn,
-2013,5,18,0,0.400000,4,Type 2,3,1,Red Route,Some Notes
+2013,5,18,0,0.400000,4,Type 2,2,4,Red Route,Some Notes
 2013,5,18,0,0.500000,5,,3,0,sometihng,
 2013,5,18,0,0.600000,6,Type 2,3,1,Red Route,Some Notes
 2013,5,18,0,0.700000,7,Type 1,3,0,Different Route,
 2013,5,18,0,0.000000,0,Type 1,3,0,Red Route,
 2013,5,18,0,0.000000,0,,3,0,Different Route,
 2013,5,18,0,7.200000,3000,Difficult,3,3,sometihng,Some Notes
-2013,5,18,0,0.000000,0,,3,0,Red Route,
+2013,5,18,0,0.000000,0,,5,4,Red Route,

@@ -389,8 +389,15 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         new_data->seconds_buff = seconds_buff;
         new_data->minutes_buff = minutes_buff;
         new_data->hours_buff = hours_buff;
+        new_data->feel1 = GTK_RADIO_BUTTON(feel1);
+        new_data->feel2 = GTK_RADIO_BUTTON(feel2);
         new_data->feel3 = GTK_RADIO_BUTTON(feel3);
+        new_data->feel4 = GTK_RADIO_BUTTON(feel4);
+        new_data->feel5 = GTK_RADIO_BUTTON(feel5);
         new_data->time1 = GTK_RADIO_BUTTON(time1);
+        new_data->time2 = GTK_RADIO_BUTTON(time2);
+        new_data->time3 = GTK_RADIO_BUTTON(time3);
+        new_data->time4 = GTK_RADIO_BUTTON(time4);
         new_data->workout_type_entry = GTK_COMBO_BOX_TEXT(workout_type_entry);
         new_data->route_entry = GTK_COMBO_BOX_TEXT(route_entry);
         new_data->newrun_window = window;

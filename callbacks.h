@@ -20,8 +20,15 @@ typedef struct NEW_DATA {
         GtkEntryBuffer *seconds_buff;
         GtkEntryBuffer *minutes_buff;
         GtkEntryBuffer *hours_buff;
+        GtkRadioButton *feel1;
+        GtkRadioButton *feel2;
         GtkRadioButton *feel3;
+        GtkRadioButton *feel4;
+        GtkRadioButton *feel5;
         GtkRadioButton *time1;
+        GtkRadioButton *time2;
+        GtkRadioButton *time3;
+        GtkRadioButton *time4;
         GtkComboBoxText *workout_type_entry;
         GtkComboBoxText *route_entry;
         GtkTextBuffer *notes_buff;
