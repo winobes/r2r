@@ -1,16 +1,17 @@
 #include "r2r.h"
-
-typedef struct RUNLIST {
-        R2RDatabase *database;
-        GtkListStore *store;
-} RUNLIST;
+#include <string.h>
 
 typedef struct NEW_DATA {
+
         R2RDatabase *database;
         R2RRun *newrun;
         gint edit_index;
-        GtkWidget *newrun_window;
+
         GtkWidget *runlist_window;
+        GtkTreeView *runlist;
+        GtkListStore *runlist_store;
+
+        GtkWidget *newrun_window;
         GtkCalendar *calendar;
         GtkSpinButton *distance_chooser;
         GtkSpinButton *day_chooser;
@@ -24,6 +25,7 @@ typedef struct NEW_DATA {
         GtkComboBoxText *workout_type_entry;
         GtkComboBoxText *route_entry;
         GtkTextBuffer *notes_buff;
+
 } NEW_DATA;
 
 void open_window(GtkWidget *widget, gpointer data);
@@ -37,6 +39,7 @@ void set_date_day(GtkSpinButton *button, gpointer data);
 void set_date_month(GtkComboBox *combo_box, gpointer data);
 void set_date_year(GtkSpinButton *button, gpointer data);
 void set_time(GtkWidget *widget, gpointer data);
+void set_distance(GtkSpinButton *button, gpointer data);
 void set_type(GtkWidget *widget, gpointer data);
 void set_feel_1(GtkWidget *widget, gpointer data);
 void set_feel_2(GtkWidget *widget, gpointer data);

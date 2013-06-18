@@ -35,13 +35,8 @@ typedef struct R2RDatabase {
         size_t nruns;
 } R2RDatabase;
         
-
 enum {
-        MILES,
-        KILOMETERS,
-} units;
-
-enum {
+        INDEX,
         YEAR,
         MONTH,
         DAY,
@@ -52,8 +47,13 @@ enum {
         FEEL,
         TIME_OF_DAY,
         ROUTE,
-        N_COLUMNS,
+        N_COLUMNS
 } columns;
+
+enum {
+        MILES,
+        KILOMETERS,
+} units;
 
 enum {
         MORNING,

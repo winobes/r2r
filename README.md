@@ -3,8 +3,6 @@ r2r
 
 ## TODO: ##
 
-* Release pointer after saving new run.
-* Clear entry boxes when initializing new run window.
 * Set radio buttons correctly when initializing edit window.
 * Fix miles view to show %.2f
 * Fix time view to shouw hours, minutes, seconds.

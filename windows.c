@@ -37,9 +37,11 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         GtkWidget *menubar;
         GtkWidget *tree;
         GtkWidget *newrun;
+        GtkWidget *editrun;
         GtkWidget *refresh;
         GtkCellRenderer *renderer;
         GtkListStore *store;
+        GtkTreeViewColumn *index_column;
         GtkTreeViewColumn *year_column;
         GtkTreeViewColumn *month_column;
         GtkTreeViewColumn *day_column;
@@ -67,34 +69,49 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
 
         /* Create Buttons */
         newrun = gtk_button_new_with_label("New Run"); 
+        editrun = gtk_button_new_with_label("Edit");
         refresh = gtk_button_new_with_label("Refresh List");
 
         /* Create the tree view */
         tree = gtk_tree_view_new();
         store = gtk_list_store_new (N_COLUMNS,
-                G_TYPE_INT,
-                G_TYPE_INT,
-                G_TYPE_INT,
-                G_TYPE_INT,
-                G_TYPE_FLOAT,
-                G_TYPE_INT,
-                G_TYPE_STRING,
-                G_TYPE_INT,
-                G_TYPE_INT,
-                G_TYPE_STRING);
+                G_TYPE_INT, /* Index */ 
+                G_TYPE_INT, /* Year */
+                G_TYPE_INT, /* Month */
+                G_TYPE_INT, /* Day */
+                G_TYPE_INT, /* # */ 
+                G_TYPE_FLOAT, /* Miles */
+                G_TYPE_INT, /* Time */
+                G_TYPE_STRING, /* Workout Type */
+                G_TYPE_INT, /* Feel */
+                G_TYPE_INT, /* Time of Day */
+                G_TYPE_STRING); /* Route */
 
         tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
         renderer = gtk_cell_renderer_text_new();
-        year_column = gtk_tree_view_column_new_with_attributes ("Year", renderer, "text", YEAR, NULL);
-        month_column = gtk_tree_view_column_new_with_attributes ("Month", renderer, "text", MONTH, NULL);
-        day_column = gtk_tree_view_column_new_with_attributes ("Day", renderer, "text", DAY, NULL);
-        run_n_column = gtk_tree_view_column_new_with_attributes ("#", renderer, "text", RUN_N, NULL);
-        distance_column = gtk_tree_view_column_new_with_attributes ("Miles", renderer, "text", DISTANCE, NULL);
-        duration_column = gtk_tree_view_column_new_with_attributes ("Time", renderer, "text", DURATION, NULL);
-        workout_type_column = gtk_tree_view_column_new_with_attributes ("Workout Type", renderer, "text", WORKOUT_TYPE, NULL);
-        feel_column = gtk_tree_view_column_new_with_attributes ("Feel", renderer, "text", FEEL, NULL);
-        time_of_day_column = gtk_tree_view_column_new_with_attributes ("Time of Day", renderer, "text", TIME_OF_DAY, NULL);
-        route_column = gtk_tree_view_column_new_with_attributes ("Route", renderer, "text", ROUTE, NULL);
+        index_column = gtk_tree_view_column_new_with_attributes 
+                ("Index", renderer, "text", INDEX, NULL);
+        year_column = gtk_tree_view_column_new_with_attributes 
+                ("Year", renderer, "text", YEAR, NULL);
+        month_column = gtk_tree_view_column_new_with_attributes 
+                ("Month", renderer, "text", MONTH, NULL);
+        day_column = gtk_tree_view_column_new_with_attributes 
+                ("Day", renderer, "text", DAY, NULL);
+        run_n_column = gtk_tree_view_column_new_with_attributes 
+                ("#", renderer, "text", RUN_N, NULL);
+        distance_column = gtk_tree_view_column_new_with_attributes 
+                ("Miles", renderer, "text", DISTANCE, NULL);
+        duration_column = gtk_tree_view_column_new_with_attributes 
+                ("Time", renderer, "text", DURATION, NULL);
+        workout_type_column = gtk_tree_view_column_new_with_attributes 
+                ("Workout Type", renderer, "text", WORKOUT_TYPE, NULL);
+        feel_column = gtk_tree_view_column_new_with_attributes 
+                ("Feel", renderer, "text", FEEL, NULL);
+        time_of_day_column = gtk_tree_view_column_new_with_attributes 
+                ("Time of Day", renderer, "text", TIME_OF_DAY, NULL);
+        route_column = gtk_tree_view_column_new_with_attributes 
+                ("Route", renderer, "text", ROUTE, NULL);
+
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), year_column);
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), month_column);
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), day_column);
@@ -110,12 +127,14 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
         gtk_grid_attach(GTK_GRID(grid), tree, 0 , 1, 4, 1);
         gtk_grid_attach(GTK_GRID(grid), newrun, 3, 2, 1, 1);
+        gtk_grid_attach(GTK_GRID(grid), editrun, 2, 2, 1, 1);
         gtk_grid_attach(GTK_GRID(grid), refresh, 1, 2, 1, 1); 
  
         /* structed up data for callbacks */ 
-        static RUNLIST runlist;
-        runlist.database = database;
-        runlist.store = store;
+        new_data->database = database;
+        new_data->runlist_store = store;
+        new_data->runlist = GTK_TREE_VIEW(tree);
+        new_data->runlist_window = window;
 
         /* Connect all our callbacks */
         g_signal_connect_swapped(G_OBJECT(window), "destroy",
@@ -124,11 +143,13 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
                 G_CALLBACK(destroy_new_data), (gpointer) new_data);
         g_signal_connect(G_OBJECT(newrun), "clicked",
                 G_CALLBACK(init_newrun_window_for_new_run), (gpointer) new_data);
+        g_signal_connect(G_OBJECT(editrun), "clicked",
+                G_CALLBACK(init_newrun_window_for_edit), (gpointer) new_data);
         g_signal_connect(G_OBJECT(refresh), "clicked",
-                G_CALLBACK(refresh_list), (gpointer) &runlist);
+                G_CALLBACK(refresh_list), (gpointer) new_data);
         
         /* Initial refresh to populate the list */
-        refresh_list(NULL, &runlist);
+        refresh_list(NULL, new_data);
 
         return window;
 }
@@ -360,7 +381,6 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
         save_button = gtk_button_new_with_label("Save");
 
         /* Populate the data struct */ 
-        new_data->database = database; 
         new_data->calendar = GTK_CALENDAR(calendar);
         new_data->distance_chooser = GTK_SPIN_BUTTON(distance_chooser);
         new_data->day_chooser = GTK_SPIN_BUTTON(day_chooser);
@@ -458,6 +478,8 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 G_CALLBACK(set_time), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(set_type), (gpointer) new_data);
+        g_signal_connect(distance_chooser, "changed",
+                G_CALLBACK(set_distance), (gpointer) new_data);
         g_signal_connect(feel1, "toggled",
                 G_CALLBACK(set_feel_1), (gpointer) new_data);
         g_signal_connect(feel2, "toggled",
@@ -480,6 +502,8 @@ static GtkWidget* create_newrun_window(GtkWidget *runlist_window,
                 G_CALLBACK(set_route), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(save), (gpointer) new_data);
+        g_signal_connect(save_button, "clicked",
+                G_CALLBACK(refresh_list), (gpointer) new_data);
         g_signal_connect(save_button, "clicked",
                 G_CALLBACK(hide_window), notes_window);
         g_signal_connect(G_OBJECT(notes_button), "clicked",

@@ -33,7 +33,9 @@ static void populate_MRUs(NEW_DATA *new_data)
         for (i = 0; i < database->nruns; i++) {
                 already_in = false;
                 for (j = 0; j < ntypes; j++) {
-                        if (g_strcmp0(database->run[i]->type, types[j]) == 0)
+                        if (g_strcmp0(database->run[i]->type, types[j]) == 0 ||
+                            database->run[i]->type[0] == ' ' ||
+                            database->run[i]->type[0] == '\0')
                                 already_in = true;
                 }
                 if (!already_in) {
@@ -61,7 +63,9 @@ static void populate_MRUs(NEW_DATA *new_data)
         for (i = 0; i < database->nruns; i++) {
                 already_in = false;
                 for (j = 0; j < nroutes; j++) {
-                        if (g_strcmp0(database->run[i]->route, routes[j]) == 0)
+                        if (g_strcmp0(database->run[i]->route, routes[j]) == 0 ||
+                            database->run[i]->route[0] == ' ' ||
+                            database->run[i]->route[0] == '\0') 
                                 already_in = true;
                 }
                 if (!already_in) {
@@ -101,9 +105,10 @@ void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
         gtk_entry_buffer_set_text(new_data->hours_buff, "00", 2); 
 
         printf("setting combobox to nothing!!\n");
-        //TODO why doesn't this work?
-        gtk_combo_box_set_active(GTK_COMBO_BOX(new_data->route_entry), -1);
-        gtk_combo_box_set_active(GTK_COMBO_BOX(new_data->workout_type_entry), -1); 
+        GtkWidget *entry = gtk_bin_get_child(GTK_BIN(new_data->route_entry));
+        gtk_entry_set_text(GTK_ENTRY(entry), "");
+        entry = gtk_bin_get_child(GTK_BIN(new_data->workout_type_entry));
+        gtk_entry_set_text(GTK_ENTRY(entry), "");
 
         // setting the feel3 button active 
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel3), true);
@@ -118,12 +123,93 @@ void init_newrun_window_for_new_run(GtkWidget *widget, gpointer data)
 
 }
 
+static void set_time_strings(gint total,
+                gchar *hours_str, gchar *minutes_str, gchar *seconds_str)
+{
+        //printf("%i becomes", total);
+
+        int hours = total/(60 * 60);    
+        total = total % (60 * 60);
+
+        int minutes = total/60;
+        total = total % 60;
+
+        int seconds = total;
+        
+        g_snprintf(hours_str, 3, "%i", hours);
+        g_snprintf(minutes_str, 3, "%i", minutes);
+        g_snprintf(seconds_str, 3, "%i", seconds);
+
+        //printf("%i hours, %i minutes, %i seconds.\n", hours, minutes, seconds);
+}
+
+        
+
 void init_newrun_window_for_edit(GtkWidget *widget, gpointer data)
 {
 
         NEW_DATA *new_data = (NEW_DATA *) data;
         populate_MRUs(new_data);
 
+        GtkTreeSelection *selection;
+        GtkTreeModel *model;
+        GtkTreeIter iter;
+        GValue value = G_VALUE_INIT;
+
+        gchar buff[30];
+        gchar seconds_buff[3];
+        gchar minutes_buff[3];
+        gchar hours_buff[3];
+
+        selection = gtk_tree_view_get_selection(new_data->runlist);
+        gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
+        gtk_tree_selection_get_selected(selection, &model, &iter);
+        gtk_tree_model_get_value(model, &iter, INDEX, &value);
+        new_data->edit_index = g_value_get_int(&value);
+
+        // set the date
+        set_time_strings(new_data->database->run[new_data->edit_index]->duration,
+                        hours_buff, minutes_buff, seconds_buff);
+
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(new_data->day_chooser), 
+                        new_data->database->run[new_data->edit_index]->day);
+        g_snprintf(buff, 30, 
+                "%i", new_data->database->run[new_data->edit_index]->month);
+        gtk_combo_box_set_active_id(GTK_COMBO_BOX(new_data->month_chooser), buff);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(new_data->year_chooser), 
+                        new_data->database->run[new_data->edit_index]->year);
+
+        // setting the distance  
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(new_data->distance_chooser), 
+                        new_data->database->run[new_data->edit_index]->distance);
+
+        // setting the time fields
+        gtk_entry_buffer_set_text(new_data->seconds_buff, seconds_buff, 2);
+        gtk_entry_buffer_set_text(new_data->minutes_buff, minutes_buff, 2);
+        gtk_entry_buffer_set_text(new_data->hours_buff, hours_buff, 2); 
+
+        // setting the entries
+        GtkWidget *entry = gtk_bin_get_child(GTK_BIN(new_data->route_entry));
+        gtk_entry_set_text(GTK_ENTRY(entry), 
+                new_data->database->run[new_data->edit_index]->route); 
+
+        entry = gtk_bin_get_child(GTK_BIN(new_data->workout_type_entry));
+        gtk_entry_set_text(GTK_ENTRY(entry), 
+                new_data->database->run[new_data->edit_index]->type); 
+
+        // setting the feel3 button active  TODO set these correctly
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->feel3), true);
+
+        // setting the morning button active TODO sete these correctly
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(new_data->time1), true);
+        
+        //clearing the notes buffer
+        gtk_text_buffer_set_text(new_data->notes_buff,
+                new_data->database->run[new_data->edit_index]->notes, 
+                new_data->database->run[new_data->edit_index]->notes_len);
+
+
+        open_window(GTK_WIDGET(widget), (gpointer) new_data->newrun_window);
 }
 
 static update_dates(gpointer data)
@@ -151,7 +237,7 @@ static update_dates(gpointer data)
         gtk_calendar_select_day(GTK_CALENDAR(calendar), day);
         gtk_calendar_select_month(GTK_CALENDAR(calendar), month, year);
                 
-        printf("%i/%i/%i\n", month, day, year);
+        //printf("%i/%i/%i\n", month, day, year);
 }
 
 void set_date_calendar(GtkCalendar *calendar, gpointer data)
@@ -222,6 +308,13 @@ void set_time(GtkWidget *widget, gpointer data)
                  + 60 * strtol(gtk_entry_buffer_get_text(minutes), NULL, 10)
                  + 60 * 60 * strtol(gtk_entry_buffer_get_text(hours), NULL, 10);
 }
+
+void set_distance(GtkSpinButton *button, gpointer data)
+{
+        ((NEW_DATA*) data)->newrun->distance = 
+                gtk_spin_button_get_value(GTK_SPIN_BUTTON(button));
+}
+
 
 void set_type(GtkWidget *widget, gpointer data)
 {
@@ -329,39 +422,39 @@ static void set_notes(R2RRun *run, GtkTextBuffer *notes_buff)
         g_snprintf(run->notes, run->notes_len + 1, "%s", gtk_text_buffer_get_text(notes_buff, &start, &end, false));
 }
         
-
-static void save_new(NEW_DATA* new_data)
-{
-        R2RDatabase *database = new_data->database;
-        R2RRun *new_run = new_data->newrun;
-
-        set_notes(new_run, new_data->notes_buff);
-        
-        /* make space in the database for the new run and move it*/
-        database->nruns++;
-        database->run = g_realloc(database->run, database->nruns * sizeof(R2RRun*));    
-        database->run[database->nruns-1] = new_run;
-
-        /* allocate space for another new run */
-        new_data->newrun = g_malloc(sizeof(R2RRun));
-
-        gtk_widget_hide(GTK_WIDGET(new_data->newrun_window));  
-
-}
-
-static void save_edit(NEW_DATA* new_data)
-{
-
-}
-
 void save(GtkWidget *widget, gpointer data)
 {
 
         NEW_DATA *new_data = (NEW_DATA*) data;
-        if (new_data->edit_index < 0) 
-                save_new(new_data);
-        else        
-                save_edit(new_data);
+        R2RDatabase *database = new_data->database;
+        R2RRun *new_run = new_data->newrun;
+        gint edit = new_data->edit_index;
+
+        /* setting notes here because we don't have a separate save button */
+        set_notes(new_run, new_data->notes_buff);
+
+        if (edit < 0) { //new run
+        /* Append the new run to the database */
+                database->nruns++;
+                database->run = g_realloc(database->run, 
+                        database->nruns * sizeof(R2RRun*)); 
+                database->run[database->nruns - 1] = g_malloc(sizeof(R2RRun)); 
+                memcpy(database->run[database->nruns - 1], new_run, sizeof(R2RRun));
+ 
+        printf("new_run = %p\n", new_run);
+        int i;
+        for (i = 0; i < database->nruns; i++) {
+                printf("run[%i] = %p\n", i, database->run[i]);
+        }       } else { //edit existing run
+        /* Replace the indexed run with the "new run" */
+                memcpy(database->run[edit], new_run, sizeof(R2RRun));
+        }
+
+        /* Either way, we need to allocate a new new run */
+
+        gtk_widget_hide(GTK_WIDGET(new_data->newrun_window));
+
+
 }
         
 /* Runlist window callbacks */
@@ -369,19 +462,21 @@ void save(GtkWidget *widget, gpointer data)
 void refresh_list(GtkWidget *widget, gpointer data)
 {
         int i;
-        RUNLIST *runlist = data;
-        R2RDatabase *database = runlist->database;
-        GtkListStore *store = runlist->store;
+        NEW_DATA *new_data = ((NEW_DATA*) data);
+        R2RDatabase *database = new_data->database;
+        GtkListStore *store = new_data->runlist_store;
         GtkTreeIter iter; 
 
+        printf("(refresh) new_run = %p\n", new_data->newrun);
         gtk_list_store_clear(store);
 
-        printf("there are %i runs.\n", (int) database->nruns);
+        //printf("there are %i runs.\n", (int) database->nruns);
 
         for (i = 0; i < database->nruns; i++) {
-        printf("appending run %i\n", i);
+        //printf("appending run %i\n", i);
                 gtk_list_store_append(store, &iter);
                 gtk_list_store_set (store, &iter,
+                        INDEX, i,
                         YEAR, database->run[i]->year,
                         MONTH, database->run[i]->month,
                         DAY, database->run[i]->day,
