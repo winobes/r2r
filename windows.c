@@ -24,7 +24,69 @@ static GtkWidget* create_menubar()
 
         return menubar;
 }
- 
+
+void render_distance_column (GtkTreeViewColumn *col,
+                             GtkCellRenderer *renderer,
+                             GtkTreeModel *model,
+                             GtkTreeIter *iter,
+                             gpointer user_data)
+{
+        gfloat distance;
+        gchar buf[20];
+
+        gtk_tree_model_get(model, iter, DISTANCE, &distance, -1);
+
+        g_snprintf(buf, sizeof(buf), "%.1f", distance);
+
+        g_object_set(renderer, "text", buf, NULL);
+}
+
+leading_zero(gchar *buf, int num)
+{
+        if (num < 10) {
+                g_snprintf(&buf[1], 2, "%i", num);
+                buf[0] = '0';
+        } else {
+                g_snprintf(buf, 3, "%i", num);
+        }
+
+        buf[2] = '\0';
+}
+        
+void render_duration_column (GtkTreeViewColumn *col,
+                             GtkCellRenderer *renderer,
+                             GtkTreeModel *model,
+                             GtkTreeIter *iter,
+                             gpointer user_data)
+{
+        gint time;
+        gint hours;
+        gint minutes;
+        gint seconds;
+    
+        gtk_tree_model_get(model, iter, DURATION, &time, -1);
+
+        hours = time / (60 * 60);
+        time %= 60 * 60;
+        minutes = time / 60;
+        time %= 60;
+        seconds = time;
+
+        gchar hours_buf[3];
+        gchar minutes_buf[3];
+        gchar seconds_buf[3];
+
+        gchar buf[10];
+
+        leading_zero(hours_buf, hours);
+        leading_zero(minutes_buf, minutes);
+        leading_zero(seconds_buf, seconds);
+
+        g_snprintf(buf, sizeof(buf), "%s:%s:%s", hours_buf, minutes_buf, seconds_buf);
+
+        g_object_set(renderer, "text", buf, NULL);
+}
+
 
 static GtkWidget* create_runlist_window(GtkWidget *newrun_window, 
                         R2RDatabase *database, NEW_DATA *new_data)
@@ -33,6 +95,7 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
 
         /* Gtk Widgets */
         GtkWidget *window;
+        GtkWidget *scrolled_window;
         GtkWidget *grid;
         GtkWidget *menubar;
         GtkWidget *tree;
@@ -40,6 +103,8 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         GtkWidget *editrun;
         GtkWidget *refresh;
         GtkCellRenderer *renderer;
+        GtkCellRenderer *distance_renderer;
+        GtkCellRenderer *duration_renderer;
         GtkListStore *store;
         GtkTreeViewColumn *index_column;
         GtkTreeViewColumn *year_column;
@@ -59,10 +124,16 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
       
         /* Create the Window and top-level box */
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        //gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
+        scrolled_window = gtk_scrolled_window_new(NULL, NULL);
         gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
         gtk_window_set_title(GTK_WINDOW(window), database->name);
         grid = gtk_grid_new();
         gtk_container_add(GTK_CONTAINER(window), grid);
+        //gtk_scrolled_window_set_min_content_height(GTK_SCROLLED_WINDOW(scrolled_window), 400);
+        //gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled_window), 600);
+        gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
+        scrolled_window = gtk_scrolled_window_new(NULL, NULL);
 
         /* Create menubar */
         menubar = create_menubar();
@@ -89,6 +160,8 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
 
         tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
         renderer = gtk_cell_renderer_text_new();
+        distance_renderer = gtk_cell_renderer_text_new();
+        duration_renderer = gtk_cell_renderer_text_new();
         index_column = gtk_tree_view_column_new_with_attributes 
                 ("Index", renderer, "text", INDEX, NULL);
         year_column = gtk_tree_view_column_new_with_attributes 
@@ -100,9 +173,9 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         run_n_column = gtk_tree_view_column_new_with_attributes 
                 ("#", renderer, "text", RUN_N, NULL);
         distance_column = gtk_tree_view_column_new_with_attributes 
-                ("Miles", renderer, "text", DISTANCE, NULL);
+                ("Miles", distance_renderer, "text", DISTANCE, NULL);
         duration_column = gtk_tree_view_column_new_with_attributes 
-                ("Time", renderer, "text", DURATION, NULL);
+                ("Time", duration_renderer, "text", DURATION, NULL);
         workout_type_column = gtk_tree_view_column_new_with_attributes 
                 ("Workout Type", renderer, "text", WORKOUT_TYPE, NULL);
         feel_column = gtk_tree_view_column_new_with_attributes 
@@ -111,6 +184,11 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
                 ("Time of Day", renderer, "text", TIME_OF_DAY, NULL);
         route_column = gtk_tree_view_column_new_with_attributes 
                 ("Route", renderer, "text", ROUTE, NULL);
+
+        gtk_tree_view_column_set_cell_data_func(distance_column, 
+                distance_renderer, render_distance_column, NULL, NULL);
+        gtk_tree_view_column_set_cell_data_func(duration_column, 
+                duration_renderer, render_duration_column, NULL, NULL);
 
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), year_column);
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), month_column);
@@ -124,12 +202,17 @@ static GtkWidget* create_runlist_window(GtkWidget *newrun_window,
         gtk_tree_view_append_column (GTK_TREE_VIEW(tree), route_column);
 
         /* Pack everything into the box */
-        gtk_grid_attach (GTK_GRID (grid), menubar, 0, 0, 1, 1); 
-        gtk_grid_attach(GTK_GRID(grid), tree, 0 , 1, 4, 1);
+        gtk_grid_attach (GTK_GRID(grid), menubar, 0, 0, 1, 1); 
+
+        gtk_grid_attach(GTK_GRID(grid), scrolled_window, 0 , 1, 4, 1);
+        gtk_container_add(GTK_CONTAINER(scrolled_window), tree);
         gtk_grid_attach(GTK_GRID(grid), newrun, 3, 2, 1, 1);
         gtk_grid_attach(GTK_GRID(grid), editrun, 2, 2, 1, 1);
         gtk_grid_attach(GTK_GRID(grid), refresh, 1, 2, 1, 1); 
  
+        gtk_widget_set_hexpand(scrolled_window, true);
+        gtk_widget_set_vexpand(scrolled_window, true);
+
         /* structed up data for callbacks */ 
         new_data->database = database;
         new_data->runlist_store = store;
